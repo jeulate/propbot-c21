@@ -3,6 +3,7 @@ import { z } from "zod";
 import { actualizarEstadoCierre } from "@/lib/repositories/cierres";
 import { obtenerSesionActual } from "@/lib/auth";
 import { PERMISOS } from "@/types/domain";
+import { notificarCierreVerificado } from "@/lib/bot/notificaciones";
 
 const esquema = z.object({
   estado: z.enum(["PENDIENTE_REVISION", "VERIFICADO", "RECHAZADO"]),
@@ -23,6 +24,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   try {
     const cierre = await actualizarEstadoCierre(params.id, parsed.data.estado);
+
+    if (parsed.data.estado === "VERIFICADO") {
+      await notificarCierreVerificado(cierre);
+    }
+
     return NextResponse.json({ ok: true, cierre });
   } catch (error) {
     const mensaje = error instanceof Error ? error.message : "Error desconocido";

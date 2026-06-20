@@ -42,6 +42,25 @@ const tecladoConfirmacion = new InlineKeyboard()
   .row()
   .text("✏️ Cancelar y empezar de nuevo", "confirmar:NO");
 
+const MENSAJE_BIENVENIDA =
+  "👋 Hola, soy el *Asistente digital de Cierres* de la oficina *Century 21 Rita Quiroga*.\n\n" +
+  "Te ayudaré a registrar tu cierre paso a paso para enviarlo al panel de administración.\n\n" +
+  "*Procedimiento:*\n" +
+  "1. Usa /nuevo para iniciar.\n" +
+  "2. Responde cada pregunta con datos completos y claros.\n" +
+  "3. Cuando llegues al resumen final, revisa todo y confirma con *Guardar cierre*.\n" +
+  "4. Administración verificará el cierre y recibirás una notificación cuando quede registrado.\n\n" +
+  "También puedes usar /cancelar para descartar un registro en curso.";
+
+const MENSAJE_AYUDA =
+  "🧭 *Guía rápida de registro*\n\n" +
+  "- *ID:* escribe el número de expediente sin espacios innecesarios.\n" +
+  "- *Fecha:* usa formato DD/MM/AAAA.\n" +
+  "- *Montos y T.C.:* envía solo números (ejemplo: 12500 o 6.96).\n" +
+  "- *Teléfonos:* incluye código de país si aplica (ejemplo: +59170000000).\n" +
+  "- *Botones:* para Tipo de transacción y Exclusiva, usa los botones del chat.\n\n" +
+  "Al final verás un resumen completo para confirmar antes de enviar al panel.";
+
 async function requiereAutorizacion(ctx: Context): Promise<boolean> {
   const telegramId = String(ctx.from?.id ?? "");
   const autorizado = await esAsesorAutorizado(telegramId);
@@ -56,12 +75,12 @@ async function requiereAutorizacion(ctx: Context): Promise<boolean> {
 
 bot.command("start", async (ctx) => {
   if (!(await requiereAutorizacion(ctx))) return;
-  await ctx.reply(
-    "👋 Bienvenido al bot de *Control de Cierres* — Century 21 Rita Quiroga.\n\n" +
-      "Usa /nuevo para registrar un cierre.\n" +
-      "Usa /cancelar para descartar un registro en curso.",
-    { parse_mode: "Markdown" }
-  );
+  await ctx.reply(MENSAJE_BIENVENIDA, { parse_mode: "Markdown" });
+});
+
+bot.command("ayuda", async (ctx) => {
+  if (!(await requiereAutorizacion(ctx))) return;
+  await ctx.reply(MENSAJE_AYUDA, { parse_mode: "Markdown" });
 });
 
 bot.command("cancelar", async (ctx) => {
@@ -75,6 +94,12 @@ bot.command("nuevo", async (ctx) => {
   const telegramId = String(ctx.from?.id ?? "");
   const estado = iniciarNuevoEstado();
   await guardarEstado(telegramId, estado);
+  await ctx.reply(
+    "📝 Iniciaremos el registro del cierre.\n" +
+      "Responde una pregunta a la vez. Si te equivocas, puedes usar /cancelar y volver a comenzar.\n\n" +
+      "Cuando termines, te mostraré un resumen para confirmar antes de enviarlo al panel.",
+    { parse_mode: "Markdown" }
+  );
   await ctx.reply(PREGUNTAS.ID, { parse_mode: "Markdown" });
 });
 
@@ -306,6 +331,8 @@ async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacio
     `👤 Propietario: ${d.nombrePropietario} (${d.telPropietario})`,
     `👤 Cliente: ${d.nombreCliente} (${d.telCliente})`,
     `🔒 Exclusiva: ${d.exclusiva ? "Sí" : "No"}`,
+    "",
+    "Si los datos son correctos, presiona *Guardar cierre*. Si detectas un error, presiona *Cancelar y empezar de nuevo*.",
   ].join("\n");
 
   await ctx.reply(resumen, { parse_mode: "Markdown", reply_markup: tecladoConfirmacion });
