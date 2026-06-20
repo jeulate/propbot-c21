@@ -79,7 +79,24 @@ export function GestionUsuarios({ usuariosIniciales }: { usuariosIniciales: Usua
         </p>
       )}
 
-      <div className="shadow-panel overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800">
+      <div className="space-y-3 md:hidden">
+        {usuarios.map((u) => (
+          <article key={u.id} className="shadow-panel rounded-xl border border-carbon-700 bg-carbon-800 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-xs text-gold-100/60">{u.username}</p>
+                <p className="mt-1 text-sm font-medium text-gold-50">{u.nombre}</p>
+              </div>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${u.activo ? "bg-signal-ok/15 text-signal-ok" : "bg-signal-danger/15 text-signal-danger"}`}>
+                {u.activo ? "Activo" : "Inactivo"}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-gold-100/70">Rol: {u.rol}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="shadow-panel hidden overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800 md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-carbon-700 text-xs uppercase tracking-wide text-gold-100/40">

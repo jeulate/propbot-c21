@@ -63,14 +63,62 @@ export function TablaCierres({
         <button
           onClick={exportar}
           disabled={exportando}
-          className="focus-ring flex items-center gap-2 rounded-md bg-gold-500 px-4 py-2 text-sm font-medium text-carbon-950 transition-colors hover:bg-gold-300 disabled:opacity-60"
+          className="focus-ring flex items-center gap-2 rounded-md bg-gold-500 px-3 py-2 text-xs font-medium text-carbon-950 transition-colors hover:bg-gold-300 disabled:opacity-60 sm:px-4 sm:text-sm"
         >
           <Download size={16} />
           {exportando ? "Generando..." : "Exportar a Excel"}
         </button>
       </div>
 
-      <div className="shadow-panel overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800">
+      <div className="space-y-3 md:hidden">
+        {cierres.map((c) => (
+          <article key={c.id} className="shadow-panel rounded-xl border border-carbon-700 bg-carbon-800 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-xs text-gold-100/70">{c.id}</p>
+                <p className="mt-1 text-sm font-medium text-gold-50">{c.direccionInmueble}</p>
+              </div>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTILOS_ESTADO[c.estado]}`}>
+                {ETIQUETAS_ESTADO[c.estado]}
+              </span>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gold-100/75">
+              <p>Fecha: {c.fechaCierre}</p>
+              <p>Tipo: {c.tipoTransaccion}</p>
+              <p>Monto: {formatoUSD(c.montoTransaccion)}</p>
+              <p>Comisión: {formatoUSD(c.montoComision)}</p>
+              <p>Captador: {c.asesorCaptadorNombre}</p>
+              <p>Colocador: {c.asesorColocadorNombre}</p>
+              <p>Exclusiva: {c.exclusiva ? "Sí" : "No"}</p>
+            </div>
+
+            {puedeVerificar && (
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => cambiarEstado(c.id, "VERIFICADO")}
+                  className="focus-ring flex items-center gap-1 rounded-md border border-signal-ok/40 px-2.5 py-1.5 text-xs text-signal-ok hover:bg-signal-ok/10"
+                >
+                  <Check size={14} /> Verificar
+                </button>
+                <button
+                  onClick={() => cambiarEstado(c.id, "RECHAZADO")}
+                  className="focus-ring flex items-center gap-1 rounded-md border border-signal-danger/40 px-2.5 py-1.5 text-xs text-signal-danger hover:bg-signal-danger/10"
+                >
+                  <X size={14} /> Rechazar
+                </button>
+              </div>
+            )}
+          </article>
+        ))}
+        {cierres.length === 0 && (
+          <div className="rounded-xl border border-carbon-700 bg-carbon-800 px-4 py-8 text-center text-sm text-gold-100/40">
+            No hay cierres registrados todavía.
+          </div>
+        )}
+      </div>
+
+      <div className="shadow-panel hidden overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800 md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-carbon-700 text-xs uppercase tracking-wide text-gold-100/40">

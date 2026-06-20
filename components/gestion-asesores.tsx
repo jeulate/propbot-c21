@@ -92,7 +92,38 @@ export function GestionAsesores({ asesoresIniciales }: { asesoresIniciales: Ases
         <span className="font-mono">@userinfobot</span> en Telegram — le devolverá su ID numérico.
       </p>
 
-      <div className="shadow-panel overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800">
+      <div className="space-y-3 md:hidden">
+        {asesores.map((a) => (
+          <article key={a.telegramId} className="shadow-panel rounded-xl border border-carbon-700 bg-carbon-800 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-gold-50">{a.nombre}</p>
+                <p className="mt-1 font-mono text-xs text-gold-100/60">{a.telegramId}</p>
+              </div>
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  a.activo ? "bg-signal-ok/15 text-signal-ok" : "bg-signal-danger/15 text-signal-danger"
+                }`}
+              >
+                {a.activo ? "Activo" : "Inactivo"}
+              </span>
+            </div>
+            <button
+              onClick={() => alternarEstado(a)}
+              className="focus-ring mt-3 rounded-md border border-carbon-600 px-3 py-1.5 text-xs text-gold-300 hover:bg-carbon-700"
+            >
+              {a.activo ? "Desactivar" : "Activar"}
+            </button>
+          </article>
+        ))}
+        {asesores.length === 0 && (
+          <div className="rounded-xl border border-carbon-700 bg-carbon-800 px-4 py-8 text-center text-sm text-gold-100/40">
+            Ningún asesor registrado todavía.
+          </div>
+        )}
+      </div>
+
+      <div className="shadow-panel hidden overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800 md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-carbon-700 text-xs uppercase tracking-wide text-gold-100/40">

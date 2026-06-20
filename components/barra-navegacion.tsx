@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clsx } from "clsx";
-import { LayoutDashboard, FileSpreadsheet, Users, LogOut, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, FileSpreadsheet, Users, LogOut, ShieldCheck, Menu, X } from "lucide-react";
 import type { RolUsuarioAdmin } from "@/types/domain";
 
 const ENLACES = [
@@ -22,6 +23,11 @@ export function BarraNavegacion({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [menuAbierto, setMenuAbierto] = useState(false);
+
+  useEffect(() => {
+    setMenuAbierto(false);
+  }, [pathname]);
 
   async function cerrarSesion() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -30,7 +36,38 @@ export function BarraNavegacion({
   }
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-carbon-700 bg-carbon-900 px-4 py-6">
+    <>
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-carbon-700 bg-carbon-900/95 px-4 py-3 backdrop-blur md:hidden">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-gold-500">Century 21</p>
+            <p className="font-display text-base font-semibold text-gold-50">Rita Quiroga</p>
+          </div>
+          <button
+            onClick={() => setMenuAbierto((prev) => !prev)}
+            className="focus-ring rounded-md border border-carbon-600 bg-carbon-800 p-2 text-gold-100"
+            aria-label={menuAbierto ? "Cerrar menu" : "Abrir menu"}
+            aria-expanded={menuAbierto}
+          >
+            {menuAbierto ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
+      </header>
+
+      {menuAbierto && (
+        <button
+          onClick={() => setMenuAbierto(false)}
+          className="fixed inset-0 z-30 bg-carbon-950/70 md:hidden"
+          aria-label="Cerrar menu"
+        />
+      )}
+
+      <aside
+        className={clsx(
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-carbon-700 bg-carbon-900 px-4 py-6 transition-transform duration-200 md:sticky md:top-0 md:z-10 md:h-screen md:w-64 md:translate-x-0",
+          menuAbierto ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
       <div className="mb-8 px-2">
         <p className="text-[11px] uppercase tracking-[0.2em] text-gold-500">Century 21</p>
         <p className="font-display text-lg font-semibold text-gold-50">Rita Quiroga</p>
@@ -72,6 +109,7 @@ export function BarraNavegacion({
           Cerrar sesión
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
