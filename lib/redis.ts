@@ -12,14 +12,16 @@ import { kv } from "@vercel/kv";
 export { kv };
 
 /** Prefijos de claves usados en todo el proyecto — mantenerlos centralizados evita colisiones. */
+const NAMESPACE = "propbot-c21";
+
 export const KEYS = {
-  cierre: (id: string) => `cierre:${id}`,
-  cierresIndex: "cierres:index", // sorted set: score = timestamp de creación, member = id
-  asesor: (telegramId: string) => `asesor:${telegramId}`,
-  asesoresIndex: "asesores:index", // set de telegramIds
-  usuarioAdmin: (username: string) => `admin:${username}`,
-  usuariosAdminIndex: "admins:index", // set de usernames
-  sesionToken: (token: string) => `sesion:${token}`,
+  cierre: (id: string) => `${NAMESPACE}:cierre:${id}`,
+  cierresIndex: `${NAMESPACE}:cierres:index`, // sorted set: score = timestamp de creación, member = id
+  asesor: (telegramId: string) => `${NAMESPACE}:asesor:${telegramId}`,
+  asesoresIndex: `${NAMESPACE}:asesores:index`, // set de telegramIds
+  usuarioAdmin: (username: string) => `${NAMESPACE}:admin:${username}`,
+  usuariosAdminIndex: `${NAMESPACE}:admins:index`, // set de usernames
+  sesionToken: (token: string) => `${NAMESPACE}:sesion:${token}`,
   // Estado conversacional del bot mientras el asesor llena el formulario paso a paso
-  botEstado: (telegramId: string) => `bot:estado:${telegramId}`,
+  botEstado: (telegramId: string) => `${NAMESPACE}:bot:estado:${telegramId}`,
 } as const;
