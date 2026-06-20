@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-build:
+    name: Lint, type-check y build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Verificación de tipos (TypeScript)
+        run: npm run typecheck
+
+      - name: Build de producción
+        run: npm run build
+        env:
+          # Variables dummy solo para que el build no falle por validaciones
+          # en tiempo de import; los valores reales viven en Vercel.
+          TELEGRAM_BOT_TOKEN: "dummy_ci_token"
+          AUTH_SECRET: "dummy_ci_secret_value_for_build_only"
+          KV_REST_API_URL: "https://dummy.kv.vercel-storage.com"
+          KV_REST_API_TOKEN: "dummy_token"

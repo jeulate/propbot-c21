@@ -1,0 +1,46 @@
+name: Deploy a Vercel (Producción)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Build y deploy a producción
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Vincular proyecto de Vercel
+        run: vercel link --yes --project=${{ secrets.VERCEL_PROJECT_NAME }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Descargar configuración de entorno (producción)
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build del proyecto
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy a producción
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "deployment_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "✅ Desplegado en: $URL"
+
+      - name: Resumen del deploy
+        run: |
+          echo "### 🚀 Deploy completado" >> $GITHUB_STEP_SUMMARY
+          echo "URL: ${{ steps.deploy.outputs.deployment_url }}" >> $GITHUB_STEP_SUMMARY
