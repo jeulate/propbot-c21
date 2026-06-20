@@ -1,5 +1,4 @@
 import { webhookCallback } from "grammy";
-import { bot } from "@/lib/bot/bot";
 import { NextRequest } from "next/server";
 
 /**
@@ -11,9 +10,10 @@ import { NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const handleUpdate = webhookCallback(bot, "std/http");
-
 export async function POST(req: NextRequest) {
+  const { bot } = await import("@/lib/bot/bot");
+  const handleUpdate = webhookCallback(bot, "std/http");
+
   // Verificación opcional con secret token (recomendado en producción)
   const secretEsperado = process.env.TELEGRAM_WEBHOOK_SECRET;
   if (secretEsperado) {
