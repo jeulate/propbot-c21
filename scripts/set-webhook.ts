@@ -3,7 +3,9 @@
  * Uso: npm run bot:webhook:set
  * Requiere las variables TELEGRAM_BOT_TOKEN y APP_URL en .env.local
  */
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
 
 async function main() {
   const token = process.env.TELEGRAM_BOT_TOKEN;
