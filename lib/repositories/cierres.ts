@@ -95,7 +95,7 @@ export async function obtenerMetricas() {
   for (const c of cierres) {
     porTipo[c.tipoTransaccion] = (porTipo[c.tipoTransaccion] || 0) + 1;
 
-    for (const [asesorId, asesorNombre] of [
+    /*for (const [asesorId, asesorNombre] of [
       [c.asesorCaptadorId, c.asesorCaptadorNombre],
       [c.asesorColocadorId, c.asesorColocadorNombre],
     ]) {
@@ -104,7 +104,20 @@ export async function obtenerMetricas() {
       }
       porAsesor[asesorId].cierres += 1;
       porAsesor[asesorId].comision += c.montoComision / 2; // comisión repartida captador/colocador
+    }*/
+    const asesorId = c.registradoPorTelegramId;
+    const asesorNombre = c.registradoPorNombre;
+
+    if (!porAsesor[asesorId]) {
+      porAsesor[asesorId] = {
+        nombre: asesorNombre,
+        cierres: 0,
+        comision: 0,
+      };
     }
+
+    porAsesor[asesorId].cierres += 1;
+    porAsesor[asesorId].comision += c.montoComision || 0;
   }
 
   return {
