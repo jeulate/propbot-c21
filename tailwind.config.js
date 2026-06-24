@@ -10,19 +10,30 @@ module.exports = {
       colors: {
         // Paleta basada en la identidad de Century 21: oro/bronce sobre carbón profundo.
         carbon: {
-          950: "#0d0d0c",
-          900: "#161513",
-          800: "#211f1c",
-          700: "#2e2b26",
-          600: "#454039",
+          50: "#F8F8F8",
+          100: "#E6E7E8",
+          200: "#D1D3D4",
+          300: "#BDBEC0",
+          400: "#A6A8AB",
+          500: "#808285",
+          600: "#666769",
+          700: "#4C4D4F",
+          800: "#373738",
+          900: "#252526",
+          950: "#111112",
         },
         gold: {
-          50: "#fbf6ea",
-          100: "#f3e7c4",
-          300: "#dfc06b",
-          500: "#b8860b", // dorado C21 clásico (darkgoldenrod)
-          600: "#9c700a",
-          700: "#7d5a08",
+          50: "#F9F8F3",
+          100: "#F1EFE3",
+          200: "#E1DCC7",
+          300: "#CEC5A3",
+          400: "#BEAF87",
+          500: "#A19276",
+          600: "#8C7A5F",
+          700: "#6F604A",
+          800: "#514637",
+          900: "#372F25",
+          950: "#211C16",
         },
         signal: {
           ok: "#3f8f5f",
@@ -31,8 +42,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "serif"],
-        body: ["var(--font-body)", "sans-serif"],
+        display: ["var(--font-outfit)", "sans-serif"],
+        body: ["var(--font-outfit)", "sans-serif"],
+        sans: ["var(--font-outfit)", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
       },
       boxShadow: {

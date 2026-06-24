@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-display",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-outfit",
 });
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-body",
-});
+
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -27,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="es"
-      className={`dark ${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`dark ${outfit.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body className="bg-ledger min-h-screen">{children}</body>
