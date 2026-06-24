@@ -12,7 +12,7 @@ export function TarjetaMetrica({
   tono?: "default" | "warn" | "ok";
 }) {
   return (
-    <div className="shadow-panel rounded-xl border border-carbon-700 bg-carbon-800 p-5">
+    <div className="shadow-panel rounded-xl border border-gold-200 bg-white p-5 dark:border-carbon-700 dark:bg-carbon-800">
       <p className="text-xs uppercase tracking-wide text-gold-100/50">{etiqueta}</p>
       <p
         className={clsx(

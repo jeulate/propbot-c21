@@ -38,7 +38,7 @@ export default async function DashboardPage() {
         />
       </section>
 
-      <section className="shadow-panel rounded-xl border border-carbon-700 bg-carbon-800 p-6">
+      <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
         <h2 className="font-display text-lg font-medium text-gold-50">Cierres por asesor</h2>
         <div className="mt-4">
           <GraficoCierresPorAsesor
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section className="shadow-panel rounded-xl border border-carbon-700 bg-carbon-800 p-6">
+      <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-medium text-gold-50">Últimos cierres registrados</h2>
           <Link href="/dashboard/cierres" className="focus-ring text-sm text-gold-500 hover:text-gold-300">
