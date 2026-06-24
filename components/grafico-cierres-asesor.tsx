@@ -10,7 +10,7 @@ interface DatoAsesor {
 export function GraficoCierresPorAsesor({ datos }: { datos: DatoAsesor[] }) {
   if (datos.length === 0) {
     return (
-      <p className="py-12 text-center text-sm text-gold-100/40">
+      <p className="py-12 text-center text-sm text-carbon-500 dark:text-gold-100/40">
         Todavía no hay cierres registrados para graficar.
       </p>
     );
@@ -30,7 +30,7 @@ export function GraficoCierresPorAsesor({ datos }: { datos: DatoAsesor[] }) {
             color: "#fbf6ea",
           }}
         />
-        <Bar dataKey="cierres" fill="#b8860b" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="cierres" fill="#beaf87" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
