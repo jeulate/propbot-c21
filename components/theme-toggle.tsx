@@ -25,7 +25,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={alternarTema}
-      className="focus-ring mt-3 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-gold-100/70 transition-colors hover:bg-carbon-800"
+      className="focus-ring mt-3 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-carbon-600 transition-colors hover:bg-gold-100 hover:text-carbon-900 dark:text-gold-100/70 dark:hover:bg-carbon-800 dark:hover:text-gold-100"
       title={tema === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       type="button"
     >

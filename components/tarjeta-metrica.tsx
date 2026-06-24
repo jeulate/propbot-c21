@@ -19,12 +19,12 @@ export function TarjetaMetrica({
           "font-display mt-2 text-3xl font-semibold",
           tono === "warn" && "text-signal-warn",
           tono === "ok" && "text-signal-ok",
-          tono === "default" && "text-gold-50"
+          tono === "default" && "text-carbon-900 dark:text-gold-50"
         )}
       >
         {valor}
       </p>
-      {subtexto && <p className="mt-1 text-xs text-gold-100/40">{subtexto}</p>}
+      {subtexto && <p className="mt-1 text-xs text-carbon-600 dark:text-gold-100/50">{subtexto}</p>}
     </div>
   );
 }

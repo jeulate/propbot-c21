@@ -13,8 +13,8 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <h1 className="font-display text-2xl font-semibold text-gold-50">Resumen general</h1>
-        <p className="mt-1 text-sm text-gold-100/50">
+        <h1 className="font-display text-2xl font-semibold text-carbon-900 dark:text-gold-50">Resumen general</h1>
+        <p className="mt-1 text-sm text-carbon-600 dark:text-gold-100/50">
           Estado actual de los cierres registrados vía el bot de Telegram.
         </p>
       </header>
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
       </section>
 
       <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
-        <h2 className="font-display text-lg font-medium text-gold-50">Cierres por asesor</h2>
+        <h2 className="font-display text-lg font-medium text-carbon-900 dark:text-gold-50">Cierres por asesor</h2>
         <div className="mt-4">
           <GraficoCierresPorAsesor
             datos={metricas.porAsesor.map((a) => ({ nombre: a.nombre, cierres: a.cierres }))}
@@ -49,7 +49,7 @@ export default async function DashboardPage() {
 
       <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-medium text-gold-50">Últimos cierres registrados</h2>
+          <h2 className="font-display text-lg font-medium text-carbon-900 dark:text-gold-50">Últimos cierres registrados</h2>
           <Link href="/dashboard/cierres" className="focus-ring text-sm text-gold-500 hover:text-gold-300">
             Ver todos →
           </Link>
