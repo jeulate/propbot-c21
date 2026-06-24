@@ -114,7 +114,7 @@ export function TablaCierres({
           </article>
         ))}
         {cierres.length === 0 && (
-          <div className="rounded-xl border border-carbon-700 bg-carbon-800 px-4 py-8 text-center text-sm text-gold-100/40">
+          <div className="rounded-xl border border-carbon-700 bg-carbon-800 px-4 py-8 text-center text-sm text-carbon-600 dark:text-gold-100/50">
             No hay cierres registrados todavía.
           </div>
         )}
@@ -123,7 +123,7 @@ export function TablaCierres({
       <div className="shadow-panel hidden overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800 md:block">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-carbon-700 text-xs uppercase tracking-wide text-gold-100/40">
+            <tr className="border-b border-carbon-700 text-xs uppercase tracking-wide text-carbon-600 dark:text-gold-100/40">
               <th className="px-4 py-3">ID</th>
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Captador</th>
@@ -182,7 +182,7 @@ export function TablaCierres({
             ))}
             {cierres.length === 0 && (
               <tr>
-                  <td colSpan={puedeVerificar ? 13 : 12} className="py-10 text-center text-gold-100/40">
+                  <td colSpan={puedeVerificar ? 13 : 12} className="py-10 text-center text-carbon-600 dark:text-gold-100/50">
                   No hay cierres registrados todavía.
                 </td>
               </tr>
