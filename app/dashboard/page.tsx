@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-medium text-carbon-900 dark:text-gold-50">Últimos cierres registrados</h2>
-          <Link href="/dashboard/cierres" className="focus-ring text-sm text-gold-500 hover:text-gold-300">
+          <Link href="/dashboard/cierres" className="focus-ring text-sm text-gold-600 hover:text-gold-700 dark:text-gold-500 dark:hover:text-gold-300">
             Ver todos →
           </Link>
         </div>
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-carbon-700 text-xs uppercase tracking-wide text-gold-100/40">
+              <tr className="border-b border-gold-200 text-xs uppercase tracking-wide text-carbon-500 dark:border-carbon-700 dark:text-gold-100/40">
                 <th className="py-2 pr-4">ID</th>
                 <th className="py-2 pr-4">Fecha</th>
                 <th className="py-2 pr-4">Dirección</th>
@@ -69,7 +69,7 @@ export default async function DashboardPage() {
             </thead>
             <tbody>
               {metricas.ultimosCierres.map((c) => (
-                <tr key={c.id} className="border-b border-carbon-700/50 text-gold-100/80">
+                <tr key={c.id} className="border-b border-gold-100 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700/50 dark:text-gold-100/80 dark:hover:bg-carbon-800/50">
                   <td className="py-2.5 pr-4 font-mono text-xs">{c.id}</td>
                   <td className="py-2.5 pr-4">{c.fechaCierre}</td>
                   <td className="py-2.5 pr-4">{c.direccionInmueble}</td>
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
               ))}
               {metricas.ultimosCierres.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gold-100/40">
+                  <td colSpan={6} className="py-8 text-center text-carbon-500 dark:text-gold-100/40">
                     Aún no se ha registrado ningún cierre.
                   </td>
                 </tr>
