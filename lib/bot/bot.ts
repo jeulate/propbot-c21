@@ -378,7 +378,7 @@ bot.on("message:text", async (ctx) => {
       const config = await obtenerConfiguracionComisiones();
 
       const esMismo =
-        estado.datos.asesorCaptadorId === telegramId && estado.datos.asesorColocadorId === telegramId;
+         estado.datos.asesorCaptadorId === estado.datos.asesorColocadorId;
 
       const comision = calcularComisionCierre({
         montoTransaccion: r.value,
@@ -504,7 +504,19 @@ async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacio
     `📍 Dirección: ${d.direccionInmueble}`,
     `🏷️ Tipo: ${d.tipoTransaccion}`,
     `💰 Monto transacción: ${formatoBs(d.montoTransaccion ?? 0)}`,
+    `📊 Comisión base: ${formatoBs(
+    ((d.montoTransaccion ?? 0) * (d.porcentajeBaseComision ?? 0)) / 100
+    )} (${d.porcentajeBaseComision ?? 0}%)`,
+    `🏢 Oficina nacional (${d.porcentajeOficinaNacionalAplicado ?? 0}%): ${formatoBs(
+    d.montoPagoOficinaNacional ?? 0
+    )}`,
+    `🏬 Oficina local (${d.porcentajeOficinaLocalAplicado ?? 0}%): ${formatoBs(
+    d.montoPagoOficinaLocal ?? 0
+    )}`,
     `💵 Comisión registrada: ${formatoBs(d.montoComision ?? 0)}`,
+    `👤 Pago real asesor (${d.porcentajeCategoriaAplicado ?? 0}%): ${formatoBs(
+    d.montoPagoRealAsesor ?? 0
+    )}`,
     `💱 T.C.: ${d.tipoCambio}`,
     `👤 Propietario: ${d.nombrePropietario} (${d.telPropietario})`,
     `👤 Cliente: ${d.nombreCliente} (${d.telCliente})`,
