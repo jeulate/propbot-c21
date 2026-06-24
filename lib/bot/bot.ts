@@ -457,7 +457,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
   if (estado.paso === "CONFIRMAR_COMISION") {
     const d = estado.datos;
     const detalle = [
-      "🧮 *Comisión calculada automáticamente*",
+      "💰 *Comisión calculada automáticamente*",
       "",
       `- Base de comisión aplicada: ${d.porcentajeBaseComision}%`,
       `- Oficina Nacional (${d.porcentajeOficinaNacionalAplicado}%): ${formatoBs(
