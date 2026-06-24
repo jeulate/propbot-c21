@@ -72,18 +72,18 @@ export function TablaCierres({
 
       <div className="space-y-3 md:hidden">
         {cierres.map((c) => (
-          <article key={c.id} className="shadow-panel rounded-xl border border-carbon-700 bg-carbon-800 p-4">
+          <article key={c.id} className="shadow-panel rounded-xl border border-gold-200 bg-white p-4 dark:border-carbon-700 dark:bg-carbon-800">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-mono text-xs text-gold-100/70">{c.id}</p>
-                <p className="mt-1 text-sm font-medium text-gold-50">{c.direccionInmueble}</p>
+                <p className="font-mono text-xs text-carbon-500 dark:text-gold-100/70">{c.id}</p>
+                <p className="mt-1 text-sm font-medium text-carbon-900 dark:text-gold-50">{c.direccionInmueble}</p>
               </div>
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTILOS_ESTADO[c.estado]}`}>
                 {ETIQUETAS_ESTADO[c.estado]}
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gold-100/75">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-carbon-700 dark:text-gold-100/75">
               <p>Fecha: {c.fechaCierre}</p>
               <p>Tipo: {c.tipoTransaccion}</p>
               <p>Monto: {formatoBs(c.montoTransaccion)}</p>
@@ -114,16 +114,16 @@ export function TablaCierres({
           </article>
         ))}
         {cierres.length === 0 && (
-          <div className="rounded-xl border border-carbon-700 bg-carbon-800 px-4 py-8 text-center text-sm text-carbon-600 dark:text-gold-100/50">
+          <div className="rounded-xl border border-gold-200 bg-white px-4 py-8 text-center text-sm text-carbon-600 dark:border-carbon-700 dark:bg-carbon-800 dark:text-gold-100/50">
             No hay cierres registrados todavía.
           </div>
         )}
       </div>
 
-      <div className="shadow-panel hidden overflow-x-auto rounded-xl border border-carbon-700 bg-carbon-800 md:block">
+      <div className="shadow-panel hidden overflow-x-auto rounded-xl border border-gold-200 bg-white md:block dark:border-carbon-700 dark:bg-carbon-800">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-carbon-700 text-xs uppercase tracking-wide text-carbon-600 dark:text-gold-100/40">
+            <tr className="border-b border-gold-200 text-xs uppercase tracking-wide text-carbon-500 dark:border-carbon-700 dark:text-gold-100/40">
               <th className="px-4 py-3">ID</th>
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Captador</th>
@@ -141,7 +141,7 @@ export function TablaCierres({
           </thead>
           <tbody>
             {cierres.map((c) => (
-              <tr key={c.id} className="border-b border-carbon-700/50 text-gold-100/80">
+              <tr key={c.id} className="border-b border-gold-100 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700/50 dark:text-gold-100/80 dark:hover:bg-carbon-800/50">
                 <td className="px-4 py-3 font-mono text-xs">{c.id}</td>
                 <td className="px-4 py-3">{c.fechaCierre}</td>
                 <td className="px-4 py-3">{c.asesorCaptadorNombre}</td>
