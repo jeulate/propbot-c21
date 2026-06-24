@@ -1,5 +1,7 @@
 import { kv, KEYS } from "@/lib/redis";
 import type { Cierre, CierreInput } from "@/types/domain";
+import { obtenerAsesor } from "@/lib/repositories/asesores";
+import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 
 /**
  * Repositorio de Cierres.
@@ -18,9 +20,26 @@ export async function crearCierre(
     throw new Error(`Ya existe un cierre registrado con el ID "${input.id}".`);
   }
 
+  const asesor = await obtenerAsesor(input.registradoPorTelegramId);
+  if (!asesor || !asesor.activo) {
+    throw new Error("El asesor que registra el cierre no esta autorizado o esta inactivo.");
+  }
+
+  const categoria = await obtenerCategoriaAsesor(asesor.categoriaId);
+  if (!categoria || !categoria.activo) {
+    throw new Error("El asesor no tiene una categoria activa para calcular su comision.");
+  }
+
+  const porcentajeCategoriaAplicado = categoria.porcentajeComision;
+  const montoPagoRealAsesor = Number(
+    ((input.montoTransaccion * porcentajeCategoriaAplicado) / 100).toFixed(2)
+  );
+
   const ahora = new Date().toISOString();
   const cierre: Cierre = {
     ...input,
+    porcentajeCategoriaAplicado,
+    montoPagoRealAsesor,
     creadoEn: ahora,
     actualizadoEn: ahora,
     estado: "PENDIENTE_REVISION",
@@ -86,6 +105,7 @@ export async function obtenerMetricas() {
   const cierres = await listarTodosLosCierres();
 
   const totalComisiones = cierres.reduce((acc, c) => acc + (c.montoComision || 0), 0);
+  const totalPagosReales = cierres.reduce((acc, c) => acc + (c.montoPagoRealAsesor || 0), 0);
   const totalTransacciones = cierres.reduce((acc, c) => acc + (c.montoTransaccion || 0), 0);
 
   const porTipo: Record<string, number> = {};
@@ -117,12 +137,13 @@ export async function obtenerMetricas() {
     }
 
     porAsesor[asesorId].cierres += 1;
-    porAsesor[asesorId].comision += c.montoComision || 0;
+    porAsesor[asesorId].comision += c.montoPagoRealAsesor || 0;
   }
 
   return {
     totalCierres: cierres.length,
     totalComisiones,
+    totalPagosReales,
     totalTransacciones,
     pendientesRevision: pendientes,
     porTipo,

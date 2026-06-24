@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { cambiarEstadoAsesor } from "@/lib/repositories/asesores";
+import { cambiarCategoriaAsesor, cambiarEstadoAsesor } from "@/lib/repositories/asesores";
 import { obtenerSesionActual } from "@/lib/auth";
 import { PERMISOS } from "@/types/domain";
 
-const esquema = z.object({ activo: z.boolean() });
+const esquema = z
+  .object({
+    activo: z.boolean().optional(),
+    categoriaId: z.string().min(1).optional(),
+  })
+  .refine((data) => data.activo !== undefined || data.categoriaId !== undefined, {
+    message: "Debes enviar al menos un campo a actualizar.",
+  });
 
 export async function PATCH(req: NextRequest, { params }: { params: { telegramId: string } }) {
   const sesion = await obtenerSesionActual();
@@ -18,7 +25,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { telegramId
   if (!parsed.success) return NextResponse.json({ error: "Datos inválidos." }, { status: 400 });
 
   try {
-    const asesor = await cambiarEstadoAsesor(params.telegramId, parsed.data.activo);
+    let asesor;
+    if (parsed.data.categoriaId) {
+      asesor = await cambiarCategoriaAsesor(params.telegramId, parsed.data.categoriaId);
+    }
+    if (parsed.data.activo !== undefined) {
+      asesor = await cambiarEstadoAsesor(params.telegramId, parsed.data.activo);
+    }
+
     return NextResponse.json({ ok: true, asesor });
   } catch (error) {
     const mensaje = error instanceof Error ? error.message : "Error desconocido";

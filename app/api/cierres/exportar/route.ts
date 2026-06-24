@@ -25,7 +25,7 @@ export async function GET() {
 
   const sheet = workbook.addWorksheet("Control de Cierres");
 
-  sheet.mergeCells("A1:M2");
+  sheet.mergeCells("A1:Q2");
   sheet.getCell("A1").value = "CENTURY 21 RITA QUIROGA - CONTROL DE CIERRES";
   sheet.getCell("A1").font = { bold: true, size: 14 };
   sheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
@@ -39,6 +39,8 @@ export async function GET() {
     "TIPO DE TRANSACCIÓN",
     "MONTO TRANSACCIÓN",
     "MONTO COMISIÓN",
+    "% CATEGORÍA",
+    "PAGO REAL ASESOR",
     "T.C.",
     "NOMBRE PROPIETARIO",
     "TEL. PROPIETARIO",
@@ -68,6 +70,8 @@ export async function GET() {
       c.tipoTransaccion,
       c.montoTransaccion,
       c.montoComision,
+      c.porcentajeCategoriaAplicado,
+      c.montoPagoRealAsesor,
       c.tipoCambio,
       c.nombrePropietario,
       c.telPropietario,

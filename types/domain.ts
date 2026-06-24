@@ -20,6 +20,8 @@ export interface Cierre {
   tipoTransaccion: TipoTransaccion;
   montoTransaccion: number;
   montoComision: number;
+  porcentajeCategoriaAplicado: number;
+  montoPagoRealAsesor: number;
   tipoCambio: number; // T.C.
   nombrePropietario: string;
   telPropietario: string;
@@ -37,7 +39,13 @@ export interface Cierre {
 
 export type CierreInput = Omit<
   Cierre,
-  "creadoEn" | "actualizadoEn" | "estado" | "registradoPorTelegramId" | "registradoPorNombre"
+  | "creadoEn"
+  | "actualizadoEn"
+  | "estado"
+  | "registradoPorTelegramId"
+  | "registradoPorNombre"
+  | "porcentajeCategoriaAplicado"
+  | "montoPagoRealAsesor"
 >;
 
 export type RolUsuarioAdmin = "ADMIN" | "SUPERVISOR" | "LECTOR";
@@ -55,8 +63,17 @@ export interface UsuarioAdmin {
 export interface AsesorAutorizado {
   telegramId: string; // clave: asesor:<telegramId>
   nombre: string;
+  categoriaId: string;
   activo: boolean;
   agregadoPorAdminId: string;
+  creadoEn: string;
+}
+
+export interface CategoriaAsesor {
+  id: string;
+  nombre: string;
+  porcentajeComision: number;
+  activo: boolean;
   creadoEn: string;
 }
 

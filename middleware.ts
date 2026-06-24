@@ -31,5 +31,11 @@ function redirigirALogin(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/cierres/:path*", "/api/asesores/:path*", "/api/usuarios/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/cierres/:path*",
+    "/api/asesores/:path*",
+    "/api/usuarios/:path*",
+    "/api/categorias/:path*",
+  ],
 };

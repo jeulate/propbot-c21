@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clsx } from "clsx";
-import { LayoutDashboard, FileSpreadsheet, Users, LogOut, ShieldCheck, Menu, X } from "lucide-react";
+import { LayoutDashboard, FileSpreadsheet, Users, LogOut, ShieldCheck, SlidersHorizontal, Menu, X } from "lucide-react";
 import type { RolUsuarioAdmin } from "@/types/domain";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const ENLACES = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
   { href: "/dashboard/cierres", label: "Cierres", icon: FileSpreadsheet },
   { href: "/dashboard/asesores", label: "Asesores", icon: Users, soloGestion: true },
+  { href: "/dashboard/configuracion", label: "Configuración", icon: SlidersHorizontal, soloGestion: true },
   { href: "/dashboard/usuarios", label: "Usuarios", icon: ShieldCheck, soloAdmin: true },
 ];
 
@@ -108,6 +110,7 @@ export function BarraNavegacion({
           <LogOut size={16} strokeWidth={1.75} />
           Cerrar sesión
         </button>
+        <ThemeToggle />
       </div>
       </aside>
     </>

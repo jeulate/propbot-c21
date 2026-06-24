@@ -88,6 +88,8 @@ export function TablaCierres({
               <p>Tipo: {c.tipoTransaccion}</p>
               <p>Monto: {formatoUSD(c.montoTransaccion)}</p>
               <p>Comisión: {formatoUSD(c.montoComision)}</p>
+              <p>% categoria: {c.porcentajeCategoriaAplicado}%</p>
+              <p>Pago real: {formatoUSD(c.montoPagoRealAsesor)}</p>
               <p>Captador: {c.asesorCaptadorNombre}</p>
               <p>Colocador: {c.asesorColocadorNombre}</p>
               <p>Exclusiva: {c.exclusiva ? "Sí" : "No"}</p>
@@ -130,6 +132,8 @@ export function TablaCierres({
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Monto</th>
               <th className="px-4 py-3">Comisión</th>
+              <th className="px-4 py-3">% Categoría</th>
+              <th className="px-4 py-3">Pago real</th>
               <th className="px-4 py-3">Exclusiva</th>
               <th className="px-4 py-3">Estado</th>
               {puedeVerificar && <th className="px-4 py-3">Acciones</th>}
@@ -146,6 +150,8 @@ export function TablaCierres({
                 <td className="px-4 py-3">{c.tipoTransaccion}</td>
                 <td className="px-4 py-3">{formatoUSD(c.montoTransaccion)}</td>
                 <td className="px-4 py-3">{formatoUSD(c.montoComision)}</td>
+                <td className="px-4 py-3">{c.porcentajeCategoriaAplicado}%</td>
+                <td className="px-4 py-3">{formatoUSD(c.montoPagoRealAsesor)}</td>
                 <td className="px-4 py-3">{c.exclusiva ? "Sí" : "No"}</td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTILOS_ESTADO[c.estado]}`}>
@@ -176,7 +182,7 @@ export function TablaCierres({
             ))}
             {cierres.length === 0 && (
               <tr>
-                <td colSpan={puedeVerificar ? 11 : 10} className="py-10 text-center text-gold-100/40">
+                  <td colSpan={puedeVerificar ? 13 : 12} className="py-10 text-center text-gold-100/40">
                   No hay cierres registrados todavía.
                 </td>
               </tr>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { listarAsesores } from "@/lib/repositories/asesores";
+import { listarCategoriasAsesor } from "@/lib/repositories/categorias-asesor";
 import { obtenerSesionActual } from "@/lib/auth";
 import { PERMISOS } from "@/types/domain";
 import { GestionAsesores } from "@/components/gestion-asesores";
@@ -9,6 +10,7 @@ export default async function AsesoresPage() {
   if (!sesion || !PERMISOS[sesion.rol].gestionarAsesores) redirect("/dashboard");
 
   const asesores = await listarAsesores();
+  const categorias = await listarCategoriasAsesor();
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,7 +21,7 @@ export default async function AsesoresPage() {
         </p>
       </header>
 
-      <GestionAsesores asesoresIniciales={asesores} />
+      <GestionAsesores asesoresIniciales={asesores} categoriasIniciales={categorias} />
     </div>
   );
 }

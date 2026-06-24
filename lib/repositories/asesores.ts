@@ -1,5 +1,6 @@
 import { kv, KEYS } from "@/lib/redis";
 import type { AsesorAutorizado } from "@/types/domain";
+import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 
 /**
  * Repositorio de la whitelist de asesores autorizados a usar el bot de Telegram.
@@ -18,11 +19,18 @@ export async function esAsesorAutorizado(telegramId: string): Promise<boolean> {
 export async function registrarAsesor(params: {
   telegramId: string;
   nombre: string;
+  categoriaId: string;
   agregadoPorAdminId: string;
 }): Promise<AsesorAutorizado> {
+  const categoria = await obtenerCategoriaAsesor(params.categoriaId);
+  if (!categoria || !categoria.activo) {
+    throw new Error("La categoria seleccionada no existe o esta inactiva.");
+  }
+
   const asesor: AsesorAutorizado = {
     telegramId: params.telegramId,
     nombre: params.nombre,
+    categoriaId: params.categoriaId,
     activo: true,
     agregadoPorAdminId: params.agregadoPorAdminId,
     creadoEn: new Date().toISOString(),
@@ -40,6 +48,23 @@ export async function cambiarEstadoAsesor(
   const asesor = await obtenerAsesor(telegramId);
   if (!asesor) throw new Error("Asesor no encontrado.");
   const actualizado = { ...asesor, activo };
+  await kv.set(KEYS.asesor(telegramId), actualizado);
+  return actualizado;
+}
+
+export async function cambiarCategoriaAsesor(
+  telegramId: string,
+  categoriaId: string
+): Promise<AsesorAutorizado> {
+  const asesor = await obtenerAsesor(telegramId);
+  if (!asesor) throw new Error("Asesor no encontrado.");
+
+  const categoria = await obtenerCategoriaAsesor(categoriaId);
+  if (!categoria || !categoria.activo) {
+    throw new Error("La categoria seleccionada no existe o esta inactiva.");
+  }
+
+  const actualizado: AsesorAutorizado = { ...asesor, categoriaId };
   await kv.set(KEYS.asesor(telegramId), actualizado);
   return actualizado;
 }

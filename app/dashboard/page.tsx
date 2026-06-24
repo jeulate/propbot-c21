@@ -19,11 +19,15 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <TarjetaMetrica etiqueta="Total de cierres" valor={String(metricas.totalCierres)} />
         <TarjetaMetrica
           etiqueta="Monto total transado"
           valor={formatoUSD(metricas.totalTransacciones)}
+        />
+        <TarjetaMetrica
+          etiqueta="Pago real a asesores"
+          valor={formatoUSD(metricas.totalPagosReales)}
         />
         <TarjetaMetrica etiqueta="Comisiones generadas" valor={formatoUSD(metricas.totalComisiones)} />
         <TarjetaMetrica
