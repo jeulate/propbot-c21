@@ -2,12 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #0d0d0c;
-  color: #f3e7c4;
-  font-family: var(--font-body);
-}
-
 html {
   color-scheme: dark;
 }
@@ -16,83 +10,53 @@ html:not(.dark) {
   color-scheme: light;
 }
 
-html:not(.dark) body {
-  background-color: #f6f2e8;
-  color: #2a2419;
+body {
+  background-color: #111112;
+  color: #f9f8f3;
+  font-family: var(--font-body);
 }
 
-/* Textura sutil tipo "papel de expediente" para dar carácter al fondo, sin ruido visual */
+html:not(.dark) body {
+  background-color: #f9f8f3;
+  color: #252526;
+}
+
+/* Fondo sutil tipo expediente */
 .bg-ledger {
   background-image:
-    linear-gradient(180deg, rgba(184,134,11,0.04) 0px, transparent 1px);
+    linear-gradient(180deg, rgba(190, 175, 135, 0.035) 0px, transparent 1px);
   background-size: 100% 32px;
 }
 
 html:not(.dark) .bg-ledger {
   background-image:
-    linear-gradient(180deg, rgba(184, 134, 11, 0.08) 0px, transparent 1px);
+    linear-gradient(180deg, rgba(190, 175, 135, 0.12) 0px, transparent 1px);
 }
 
-html:not(.dark) .bg-carbon-950 {
-  background-color: #f6f2e8 !important;
-}
-
-html:not(.dark) .bg-carbon-900 {
-  background-color: #efe6d3 !important;
-}
-
-html:not(.dark) .bg-carbon-900\/95 {
-  background-color: rgba(239, 230, 211, 0.95) !important;
-}
-
-html:not(.dark) .bg-carbon-800 {
-  background-color: #fffaf0 !important;
-}
-
-html:not(.dark) .border-carbon-700,
-html:not(.dark) .border-carbon-700\/50,
-html:not(.dark) .border-carbon-700\/40,
-html:not(.dark) .border-carbon-600 {
-  border-color: #d4c5ab !important;
-}
-
-html:not(.dark) .text-gold-50,
-html:not(.dark) .text-gold-100,
-html:not(.dark) .text-gold-300,
-html:not(.dark) .text-gold-500 {
-  color: #513d1d !important;
-}
-
-html:not(.dark) .text-gold-100\/80,
-html:not(.dark) .text-gold-100\/70,
-html:not(.dark) .text-gold-100\/60,
-html:not(.dark) .text-gold-100\/50,
-html:not(.dark) .text-gold-100\/40,
-html:not(.dark) .text-gold-100\/30 {
-  color: rgba(81, 61, 29, 0.75) !important;
-}
-
-html:not(.dark) .placeholder\:text-gold-100\/30::placeholder {
-  color: rgba(81, 61, 29, 0.45) !important;
-}
-
-html:not(.dark) .hover\:bg-carbon-800:hover,
-html:not(.dark) .hover\:bg-carbon-700:hover {
-  background-color: #eadfc9 !important;
-}
-
+/* Focus accesible */
 .focus-ring {
   outline: none;
 }
+
 .focus-ring:focus-visible {
-  outline: 2px solid #dfc06b;
+  outline: 2px solid #beaf87;
   outline-offset: 2px;
 }
 
+/* Selección de texto */
+::selection {
+  background-color: #beaf87;
+  color: #252526;
+}
+
+/* Reducción de movimiento */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
 }
