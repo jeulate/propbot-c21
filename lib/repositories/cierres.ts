@@ -34,8 +34,7 @@ export async function crearCierre(
 
   const configuracion = await obtenerConfiguracionComisiones();
   const esCaptadorYColocadorMismoAsesor =
-    input.asesorCaptadorId === input.registradoPorTelegramId &&
-    input.asesorColocadorId === input.registradoPorTelegramId;
+    input.asesorCaptadorId === input.asesorColocadorId;
 
   const comision = calcularComisionCierre({
     montoTransaccion: input.montoTransaccion,
