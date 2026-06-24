@@ -14,12 +14,20 @@ export interface Cierre {
   fechaCierre: string; // ISO date (yyyy-MM-dd)
   asesorCaptadorId: string; // referencia a Asesor.id (quien capta la propiedad)
   asesorCaptadorNombre: string;
+  asesorCaptadorOficina?: string;
+  asesorCaptadorTelefono?: string;
   asesorColocadorId: string; // referencia a Asesor.id (quien coloca/cierra con el cliente)
   asesorColocadorNombre: string;
+  asesorColocadorOficina?: string;
+  asesorColocadorTelefono?: string;
   direccionInmueble: string;
   tipoTransaccion: TipoTransaccion;
   montoTransaccion: number;
-  montoComision: number;
+  montoComision: number; // monto total que debe pagar el asesor (oficina nacional + oficina local)
+  porcentajeOficinaNacionalAplicado: number;
+  porcentajeOficinaLocalAplicado: number;
+  montoPagoOficinaNacional: number;
+  montoPagoOficinaLocal: number;
   porcentajeCategoriaAplicado: number;
   montoPagoRealAsesor: number;
   tipoCambio: number; // T.C.
@@ -44,6 +52,11 @@ export type CierreInput = Omit<
   | "estado"
   | "registradoPorTelegramId"
   | "registradoPorNombre"
+  | "montoComision"
+  | "porcentajeOficinaNacionalAplicado"
+  | "porcentajeOficinaLocalAplicado"
+  | "montoPagoOficinaNacional"
+  | "montoPagoOficinaLocal"
   | "porcentajeCategoriaAplicado"
   | "montoPagoRealAsesor"
 >;
@@ -75,6 +88,11 @@ export interface CategoriaAsesor {
   porcentajeComision: number;
   activo: boolean;
   creadoEn: string;
+}
+
+export interface ConfiguracionComisiones {
+  porcentajeOficinaNacional: number;
+  actualizadoEn: string;
 }
 
 /** Permisos por rol — usado tanto en backend (rutas API) como en UI (ocultar acciones) */

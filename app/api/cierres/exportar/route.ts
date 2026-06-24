@@ -25,7 +25,7 @@ export async function GET() {
 
   const sheet = workbook.addWorksheet("Control de Cierres");
 
-  sheet.mergeCells("A1:Q2");
+  sheet.mergeCells("A1:W2");
   sheet.getCell("A1").value = "CENTURY 21 RITA QUIROGA - CONTROL DE CIERRES";
   sheet.getCell("A1").font = { bold: true, size: 14 };
   sheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
@@ -38,14 +38,23 @@ export async function GET() {
     "DIRECCIÓN DEL INMUEBLE",
     "TIPO DE TRANSACCIÓN",
     "MONTO TRANSACCIÓN",
-    "MONTO COMISIÓN",
+    "% BASE COMISIÓN",
+    "% OFICINA NACIONAL",
+    "PAGO OFICINA NACIONAL",
+    "% OFICINA LOCAL",
+    "PAGO OFICINA LOCAL",
     "% CATEGORÍA",
     "PAGO REAL ASESOR",
+    "MONTO COMISIÓN (TOTAL A PAGAR)",
     "T.C.",
     "NOMBRE PROPIETARIO",
     "TEL. PROPIETARIO",
     "NOMBRE CLIENTE",
     "TEL. CLIENTE",
+    "OFICINA CAPTADOR",
+    "TEL. CAPTADOR",
+    "OFICINA COLOCADOR",
+    "TEL. COLOCADOR",
     "EXCLUSIVA (SI/NO)",
     "ESTADO",
   ];
@@ -69,14 +78,23 @@ export async function GET() {
       c.direccionInmueble,
       c.tipoTransaccion,
       c.montoTransaccion,
-      c.montoComision,
+      c.asesorCaptadorId === c.registradoPorTelegramId && c.asesorColocadorId === c.registradoPorTelegramId ? 4 : 2,
+      c.porcentajeOficinaNacionalAplicado,
+      c.montoPagoOficinaNacional,
+      c.porcentajeOficinaLocalAplicado,
+      c.montoPagoOficinaLocal,
       c.porcentajeCategoriaAplicado,
       c.montoPagoRealAsesor,
+      c.montoComision,
       c.tipoCambio,
       c.nombrePropietario,
       c.telPropietario,
       c.nombreCliente,
       c.telCliente,
+      c.asesorCaptadorOficina ?? "",
+      c.asesorCaptadorTelefono ?? "",
+      c.asesorColocadorOficina ?? "",
+      c.asesorColocadorTelefono ?? "",
       c.exclusiva ? "SI" : "NO",
       c.estado,
     ];

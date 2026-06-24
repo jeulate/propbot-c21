@@ -4,8 +4,8 @@ import { useState } from "react";
 import type { Cierre } from "@/types/domain";
 import { Check, X, Download } from "lucide-react";
 
-function formatoUSD(valor: number): string {
-  return new Intl.NumberFormat("es-BO", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(valor);
+function formatoBs(valor: number): string {
+  return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
 }
 
 const ESTILOS_ESTADO: Record<string, string> = {
@@ -86,10 +86,10 @@ export function TablaCierres({
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gold-100/75">
               <p>Fecha: {c.fechaCierre}</p>
               <p>Tipo: {c.tipoTransaccion}</p>
-              <p>Monto: {formatoUSD(c.montoTransaccion)}</p>
-              <p>Comisión: {formatoUSD(c.montoComision)}</p>
+              <p>Monto: {formatoBs(c.montoTransaccion)}</p>
+              <p>Comisión: {formatoBs(c.montoComision)}</p>
               <p>% categoria: {c.porcentajeCategoriaAplicado}%</p>
-              <p>Pago real: {formatoUSD(c.montoPagoRealAsesor)}</p>
+              <p>Pago real: {formatoBs(c.montoPagoRealAsesor)}</p>
               <p>Captador: {c.asesorCaptadorNombre}</p>
               <p>Colocador: {c.asesorColocadorNombre}</p>
               <p>Exclusiva: {c.exclusiva ? "Sí" : "No"}</p>
@@ -148,10 +148,10 @@ export function TablaCierres({
                 <td className="px-4 py-3">{c.asesorColocadorNombre}</td>
                 <td className="px-4 py-3">{c.direccionInmueble}</td>
                 <td className="px-4 py-3">{c.tipoTransaccion}</td>
-                <td className="px-4 py-3">{formatoUSD(c.montoTransaccion)}</td>
-                <td className="px-4 py-3">{formatoUSD(c.montoComision)}</td>
+                <td className="px-4 py-3">{formatoBs(c.montoTransaccion)}</td>
+                <td className="px-4 py-3">{formatoBs(c.montoComision)}</td>
                 <td className="px-4 py-3">{c.porcentajeCategoriaAplicado}%</td>
-                <td className="px-4 py-3">{formatoUSD(c.montoPagoRealAsesor)}</td>
+                <td className="px-4 py-3">{formatoBs(c.montoPagoRealAsesor)}</td>
                 <td className="px-4 py-3">{c.exclusiva ? "Sí" : "No"}</td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTILOS_ESTADO[c.estado]}`}>

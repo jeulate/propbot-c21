@@ -13,12 +13,18 @@ import type { TipoTransaccion } from "@/types/domain";
 export type PasoFormulario =
   | "ID"
   | "FECHA_CIERRE"
-  | "ASESOR_CAPTADOR"
-  | "ASESOR_COLOCADOR"
+  | "CAPTADOR_ES_REGISTRANTE"
+  | "ASESOR_CAPTADOR_NOMBRE"
+  | "ASESOR_CAPTADOR_OFICINA"
+  | "ASESOR_CAPTADOR_TELEFONO"
+  | "COLOCADOR_ES_REGISTRANTE"
+  | "ASESOR_COLOCADOR_NOMBRE"
+  | "ASESOR_COLOCADOR_OFICINA"
+  | "ASESOR_COLOCADOR_TELEFONO"
   | "DIRECCION_INMUEBLE"
   | "TIPO_TRANSACCION"
   | "MONTO_TRANSACCION"
-  | "MONTO_COMISION"
+  | "CONFIRMAR_COMISION"
   | "TIPO_CAMBIO"
   | "NOMBRE_PROPIETARIO"
   | "TEL_PROPIETARIO"
@@ -30,12 +36,18 @@ export type PasoFormulario =
 export const ORDEN_PASOS: PasoFormulario[] = [
   "ID",
   "FECHA_CIERRE",
-  "ASESOR_CAPTADOR",
-  "ASESOR_COLOCADOR",
+  "CAPTADOR_ES_REGISTRANTE",
+  "ASESOR_CAPTADOR_NOMBRE",
+  "ASESOR_CAPTADOR_OFICINA",
+  "ASESOR_CAPTADOR_TELEFONO",
+  "COLOCADOR_ES_REGISTRANTE",
+  "ASESOR_COLOCADOR_NOMBRE",
+  "ASESOR_COLOCADOR_OFICINA",
+  "ASESOR_COLOCADOR_TELEFONO",
   "DIRECCION_INMUEBLE",
   "TIPO_TRANSACCION",
   "MONTO_TRANSACCION",
-  "MONTO_COMISION",
+  "CONFIRMAR_COMISION",
   "TIPO_CAMBIO",
   "NOMBRE_PROPIETARIO",
   "TEL_PROPIETARIO",
@@ -48,12 +60,28 @@ export const ORDEN_PASOS: PasoFormulario[] = [
 export interface DatosParciales {
   id?: string;
   fechaCierre?: string;
+  asesorRegistranteNombre?: string;
+  captadorEsRegistrante?: boolean;
+  asesorCaptadorId?: string;
   asesorCaptadorNombre?: string;
+  asesorCaptadorOficina?: string;
+  asesorCaptadorTelefono?: string;
+  colocadorEsRegistrante?: boolean;
+  asesorColocadorId?: string;
   asesorColocadorNombre?: string;
+  asesorColocadorOficina?: string;
+  asesorColocadorTelefono?: string;
   direccionInmueble?: string;
   tipoTransaccion?: TipoTransaccion;
   montoTransaccion?: number;
   montoComision?: number;
+  porcentajeBaseComision?: number;
+  porcentajeOficinaNacionalAplicado?: number;
+  porcentajeOficinaLocalAplicado?: number;
+  porcentajeCategoriaAplicado?: number;
+  montoPagoOficinaNacional?: number;
+  montoPagoOficinaLocal?: number;
+  montoPagoRealAsesor?: number;
   tipoCambio?: number;
   nombrePropietario?: string;
   telPropietario?: string;
@@ -95,12 +123,21 @@ export function siguientePaso(actual: PasoFormulario): PasoFormulario {
 export const PREGUNTAS: Record<PasoFormulario, string> = {
   ID: "📋 Vamos a registrar un nuevo cierre.\n\n¿Cuál es el *ID / N° de expediente* de este cierre?",
   FECHA_CIERRE: "📅 ¿Cuál es la *fecha de cierre*? (formato DD/MM/AAAA)",
-  ASESOR_CAPTADOR: "🧑‍💼 ¿Nombre del *asesor captador* (quien capto la propiedad)?",
-  ASESOR_COLOCADOR: "🤝 ¿Nombre del *asesor colocador* (quien cerró con el cliente)?",
+  CAPTADOR_ES_REGISTRANTE:
+    "🧑‍💼 En este cierre, ¿el *asesor captador* eres tú (quien está registrando la operación)?",
+  ASESOR_CAPTADOR_NOMBRE: "🧑‍💼 Escribe el *nombre del asesor captador*.",
+  ASESOR_CAPTADOR_OFICINA: "🏢 Escribe la *oficina a la que pertenece el asesor captador*.",
+  ASESOR_CAPTADOR_TELEFONO: "📞 Escribe el *teléfono del asesor captador*.",
+  COLOCADOR_ES_REGISTRANTE:
+    "🤝 En este cierre, ¿el *asesor colocador* eres tú (quien está registrando la operación)?",
+  ASESOR_COLOCADOR_NOMBRE: "🤝 Escribe el *nombre del asesor colocador*.",
+  ASESOR_COLOCADOR_OFICINA: "🏢 Escribe la *oficina a la que pertenece el asesor colocador*.",
+  ASESOR_COLOCADOR_TELEFONO: "📞 Escribe el *teléfono del asesor colocador*.",
   DIRECCION_INMUEBLE: "📍 ¿Cuál es la *dirección del inmueble*?",
   TIPO_TRANSACCION: "🏷️ ¿Qué *tipo de transacción* es?",
-  MONTO_TRANSACCION: "💰 ¿Cuál es el *monto de la transacción*? (solo el número, en USD)",
-  MONTO_COMISION: "💵 ¿Cuál es el *monto de la comisión*? (solo el número, en USD)",
+  MONTO_TRANSACCION: "💰 ¿Cuál es el *monto de la transacción*? (solo número, en Bs)",
+  CONFIRMAR_COMISION:
+    "🧮 Te mostraré la comisión calculada automáticamente. Confirma si el monto es correcto para continuar.",
   TIPO_CAMBIO: "💱 ¿Cuál es el *tipo de cambio (T.C.)* usado?",
   NOMBRE_PROPIETARIO: "👤 ¿*Nombre del propietario*?",
   TEL_PROPIETARIO: "📞 ¿*Teléfono del propietario*?",

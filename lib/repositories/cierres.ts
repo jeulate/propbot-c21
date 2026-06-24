@@ -2,6 +2,8 @@ import { kv, KEYS } from "@/lib/redis";
 import type { Cierre, CierreInput } from "@/types/domain";
 import { obtenerAsesor } from "@/lib/repositories/asesores";
 import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
+import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
+import { calcularComisionCierre } from "@/lib/comisiones";
 
 /**
  * Repositorio de Cierres.
@@ -30,16 +32,28 @@ export async function crearCierre(
     throw new Error("El asesor no tiene una categoria activa para calcular su comision.");
   }
 
-  const porcentajeCategoriaAplicado = categoria.porcentajeComision;
-  const montoPagoRealAsesor = Number(
-    ((input.montoTransaccion * porcentajeCategoriaAplicado) / 100).toFixed(2)
-  );
+  const configuracion = await obtenerConfiguracionComisiones();
+  const esCaptadorYColocadorMismoAsesor =
+    input.asesorCaptadorId === input.registradoPorTelegramId &&
+    input.asesorColocadorId === input.registradoPorTelegramId;
+
+  const comision = calcularComisionCierre({
+    montoTransaccion: input.montoTransaccion,
+    esCaptadorYColocadorMismoAsesor,
+    porcentajeOficinaNacional: configuracion.porcentajeOficinaNacional,
+    porcentajeCategoriaAsesor: categoria.porcentajeComision,
+  });
 
   const ahora = new Date().toISOString();
   const cierre: Cierre = {
     ...input,
-    porcentajeCategoriaAplicado,
-    montoPagoRealAsesor,
+    montoComision: comision.montoComisionTotal,
+    porcentajeOficinaNacionalAplicado: comision.porcentajeOficinaNacionalAplicado,
+    porcentajeOficinaLocalAplicado: comision.porcentajeOficinaLocalAplicado,
+    montoPagoOficinaNacional: comision.montoPagoOficinaNacional,
+    montoPagoOficinaLocal: comision.montoPagoOficinaLocal,
+    porcentajeCategoriaAplicado: comision.porcentajeCategoriaAplicado,
+    montoPagoRealAsesor: comision.montoPagoRealAsesor,
     creadoEn: ahora,
     actualizadoEn: ahora,
     estado: "PENDIENTE_REVISION",

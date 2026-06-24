@@ -37,5 +37,6 @@ export const config = {
     "/api/asesores/:path*",
     "/api/usuarios/:path*",
     "/api/categorias/:path*",
+    "/api/configuracion/:path*",
   ],
 };

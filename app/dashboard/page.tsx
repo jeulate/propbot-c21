@@ -3,8 +3,8 @@ import { TarjetaMetrica } from "@/components/tarjeta-metrica";
 import { GraficoCierresPorAsesor } from "@/components/grafico-cierres-asesor";
 import Link from "next/link";
 
-function formatoUSD(valor: number): string {
-  return new Intl.NumberFormat("es-BO", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(valor);
+function formatoBs(valor: number): string {
+  return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
 }
 
 export default async function DashboardPage() {
@@ -23,13 +23,13 @@ export default async function DashboardPage() {
         <TarjetaMetrica etiqueta="Total de cierres" valor={String(metricas.totalCierres)} />
         <TarjetaMetrica
           etiqueta="Monto total transado"
-          valor={formatoUSD(metricas.totalTransacciones)}
+          valor={formatoBs(metricas.totalTransacciones)}
         />
         <TarjetaMetrica
           etiqueta="Pago real a asesores"
-          valor={formatoUSD(metricas.totalPagosReales)}
+          valor={formatoBs(metricas.totalPagosReales)}
         />
-        <TarjetaMetrica etiqueta="Comisiones generadas" valor={formatoUSD(metricas.totalComisiones)} />
+        <TarjetaMetrica etiqueta="Comisiones generadas" valor={formatoBs(metricas.totalComisiones)} />
         <TarjetaMetrica
           etiqueta="Pendientes de revisión"
           valor={String(metricas.pendientesRevision)}
@@ -74,7 +74,7 @@ export default async function DashboardPage() {
                   <td className="py-2.5 pr-4">{c.fechaCierre}</td>
                   <td className="py-2.5 pr-4">{c.direccionInmueble}</td>
                   <td className="py-2.5 pr-4">{c.tipoTransaccion}</td>
-                  <td className="py-2.5 pr-4">{formatoUSD(c.montoComision)}</td>
+                  <td className="py-2.5 pr-4">{formatoBs(c.montoComision)}</td>
                   <td className="py-2.5 pr-4">
                     <EstadoBadge estado={c.estado} />
                   </td>

@@ -21,6 +21,7 @@ export const KEYS = {
   asesoresIndex: `${NAMESPACE}:asesores:index`, // set de telegramIds
   categoriaAsesor: (id: string) => `${NAMESPACE}:categoria-asesor:${id}`,
   categoriasAsesorIndex: `${NAMESPACE}:categorias-asesor:index`, // set de ids
+  configuracionComisiones: `${NAMESPACE}:configuracion:comisiones`,
   usuarioAdmin: (username: string) => `${NAMESPACE}:admin:${username}`,
   usuariosAdminIndex: `${NAMESPACE}:admins:index`, // set de usernames
   sesionToken: (token: string) => `${NAMESPACE}:sesion:${token}`,

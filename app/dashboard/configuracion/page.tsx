@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { obtenerSesionActual } from "@/lib/auth";
 import { PERMISOS } from "@/types/domain";
 import { listarCategoriasAsesor } from "@/lib/repositories/categorias-asesor";
+import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 import { GestionCategorias } from "@/components/gestion-categorias";
 
 export default async function ConfiguracionPage() {
@@ -9,6 +10,7 @@ export default async function ConfiguracionPage() {
   if (!sesion || !PERMISOS[sesion.rol].gestionarAsesores) redirect("/dashboard");
 
   const categorias = await listarCategoriasAsesor();
+  const configuracion = await obtenerConfiguracionComisiones();
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,7 +21,10 @@ export default async function ConfiguracionPage() {
         </p>
       </header>
 
-      <GestionCategorias categoriasIniciales={categorias} />
+      <GestionCategorias
+        categoriasIniciales={categorias}
+        porcentajeOficinaNacionalInicial={configuracion.porcentajeOficinaNacional}
+      />
     </div>
   );
 }
