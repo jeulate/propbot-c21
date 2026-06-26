@@ -25,7 +25,9 @@ export function calcularComisionCierre(params: {
 }): ResultadoComision {
   const porcentajeBaseComision =
     params.tipoTransaccion === "ALQUILER"
-      ? 100
+      ? params.esCaptadorYColocadorMismoAsesor
+        ? 100
+        : 50
       : params.esCaptadorYColocadorMismoAsesor
         ? 4
         : 2;
