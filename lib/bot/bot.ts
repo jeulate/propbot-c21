@@ -20,6 +20,7 @@ import {
   validarTexto,
   validarTipoCambio,
 } from "@/lib/bot/validadores";
+import { buscarPropiedadPorId } from "@/lib/services/propiedades-c21";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 if (!BOT_TOKEN) {
@@ -302,8 +303,25 @@ bot.on("message:text", async (ctx) => {
     case "ID": {
       const r = validarId(texto);
       if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
+
+      await ctx.reply("🔎 Verificando el ID del inmueble en c21.com.bo...");
+
+      const propiedad = await buscarPropiedadPorId(r.value);
+
+      if (!propiedad) {
+        return ctx.reply(
+          "⚠️ No encontré una propiedad activa con ese ID en c21.com.bo.\n\nPor favor verifica el ID e intenta nuevamente."
+        );
+      }
+
       estado.datos.id = r.value;
-      estado.paso = "FECHA_CIERRE";
+      estado.datos.urlPropiedad = propiedad.url;
+      estado.datos.tituloPropiedad = propiedad.titulo;
+
+      await ctx.reply(
+        `✅ Propiedad encontrada:\n\n${propiedad.titulo}\n${propiedad.url}`
+      );
+
       break;
     }
     case "FECHA_CIERRE": {
@@ -495,6 +513,8 @@ async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacio
     "✅ *Revisa el resumen del cierre:*",
     "",
     `🆔 ID: ${d.id}`,
+    d.tituloPropiedad ? `🏠 Propiedad: ${d.tituloPropiedad}` : "",
+    d.urlPropiedad ? `🔗 URL: ${d.urlPropiedad}` : "",
     `📅 Fecha cierre: ${d.fechaCierre}`,
     `🧑‍💼 Asesor captador: ${d.asesorCaptadorNombre}`,
     d.asesorCaptadorOficina ? `🏢 Oficina captador: ${d.asesorCaptadorOficina}` : "",
