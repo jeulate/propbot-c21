@@ -315,13 +315,15 @@ bot.on("message:text", async (ctx) => {
       }
 
       estado.datos.id = r.value;
-      estado.datos.urlPropiedad = propiedad.url;
+
       estado.datos.tituloPropiedad = propiedad.titulo;
+      estado.datos.urlPropiedad = propiedad.url;
 
       await ctx.reply(
         `✅ Propiedad encontrada:\n\n${propiedad.titulo}\n${propiedad.url}`
       );
-
+      
+      estado.paso = "FECHA_CIERRE";
       break;
     }
     case "FECHA_CIERRE": {
@@ -456,7 +458,6 @@ bot.on("message:text", async (ctx) => {
       return ctx.reply("Usa los botones disponibles para continuar este paso.");
     }
   }
-
   await guardarEstado(telegramId, estado);
   await avanzarConSiguientePregunta(ctx, estado);
 });
