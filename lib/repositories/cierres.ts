@@ -38,6 +38,7 @@ export async function crearCierre(
 
   const comision = calcularComisionCierre({
     montoTransaccion: input.montoTransaccion,
+    tipoTransaccion: input.tipoTransaccion,
     esCaptadorYColocadorMismoAsesor,
     porcentajeOficinaNacional: configuracion.porcentajeOficinaNacional,
     porcentajeCategoriaAsesor: categoria.porcentajeComision,

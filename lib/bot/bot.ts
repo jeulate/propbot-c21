@@ -382,6 +382,7 @@ bot.on("message:text", async (ctx) => {
 
       const comision = calcularComisionCierre({
         montoTransaccion: r.value,
+        tipoTransaccion: estado.datos.tipoTransaccion!,
         esCaptadorYColocadorMismoAsesor: esMismo,
         porcentajeOficinaNacional: config.porcentajeOficinaNacional,
         porcentajeCategoriaAsesor: categoria.porcentajeComision,
