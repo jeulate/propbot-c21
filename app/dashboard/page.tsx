@@ -1,6 +1,6 @@
 import { obtenerMetricas } from "@/lib/repositories/cierres";
 import { TarjetaMetrica } from "@/components/tarjeta-metrica";
-import { GraficoCierresPorAsesor } from "@/components/grafico-cierres-asesor";
+import { GraficoRanking } from "@/components/grafico-cierres-asesor";
 import Link from "next/link";
 
 function formatoBs(valor: number): string {
@@ -19,7 +19,7 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-7">
         <TarjetaMetrica etiqueta="Total de cierres" valor={String(metricas.totalCierres)} />
         <TarjetaMetrica
           etiqueta="Monto total transado"
@@ -31,6 +31,14 @@ export default async function DashboardPage() {
         />
         <TarjetaMetrica etiqueta="Comisiones generadas" valor={formatoBs(metricas.totalComisiones)} />
         <TarjetaMetrica
+          etiqueta="Ticket promedio"
+          valor={formatoBs(metricas.ticketPromedio)}
+        />
+        <TarjetaMetrica
+          etiqueta="Comisión promedio"
+          valor={formatoBs(metricas.comisionPromedio)}
+        />
+        <TarjetaMetrica
           etiqueta="Pendientes de revisión"
           valor={String(metricas.pendientesRevision)}
           tono={metricas.pendientesRevision > 0 ? "warn" : "ok"}
@@ -38,13 +46,46 @@ export default async function DashboardPage() {
         />
       </section>
 
-      <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
-        <h2 className="font-display text-lg font-medium text-carbon-900 dark:text-gold-50">Cierres por asesor</h2>
-        <div className="mt-4">
-          <GraficoCierresPorAsesor
-            datos={metricas.porAsesor.map((a) => ({ nombre: a.nombre, cierres: a.cierres }))}
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <PanelGrafico titulo="Top 10 Colocación" descripcion="Ranking por cantidad de cierres registrados.">
+          <GraficoRanking
+            etiqueta="Cierres"
+            datos={metricas.topColocacion.map((a) => ({
+              nombre: a.nombre,
+              valor: a.cierres,
+            }))}
           />
-        </div>
+        </PanelGrafico>
+
+        <PanelGrafico titulo="Top 10 Producer" descripcion="Ranking por monto pagado al asesor.">
+          <GraficoRanking
+            etiqueta="Bs"
+            datos={metricas.topProducer.map((a) => ({
+              nombre: a.nombre,
+              valor: a.valor,
+            }))}
+          />
+        </PanelGrafico>
+
+        <PanelGrafico titulo="Top Captadores" descripcion="Asesores con más cierres como captadores.">
+          <GraficoRanking
+            etiqueta="Cierres"
+            datos={metricas.topCaptadores.map((a) => ({
+              nombre: a.nombre,
+              valor: a.cierres,
+            }))}
+          />
+        </PanelGrafico>
+
+        <PanelGrafico titulo="Top Colocadores" descripcion="Asesores con más cierres como colocadores.">
+          <GraficoRanking
+            etiqueta="Cierres"
+            datos={metricas.topColocadores.map((a) => ({
+              nombre: a.nombre,
+              valor: a.cierres,
+            }))}
+          />
+        </PanelGrafico>
       </section>
 
       <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
@@ -92,6 +133,28 @@ export default async function DashboardPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function PanelGrafico({
+  titulo,
+  descripcion,
+  children,
+}: {
+  titulo: string;
+  descripcion: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
+      <h2 className="font-display text-lg font-medium text-carbon-900 dark:text-gold-50">
+        {titulo}
+      </h2>
+      <p className="mt-1 text-sm text-carbon-600 dark:text-gold-100/50">
+        {descripcion}
+      </p>
+      <div className="mt-4">{children}</div>
+    </section>
   );
 }
 

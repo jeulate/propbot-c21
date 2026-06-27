@@ -118,52 +118,90 @@ export async function listarTodosLosCierres(): Promise<Cierre[]> {
 export async function obtenerMetricas() {
   const cierres = await listarTodosLosCierres();
 
+  const totalCierres = cierres.length;
   const totalComisiones = cierres.reduce((acc, c) => acc + (c.montoComision || 0), 0);
   const totalPagosReales = cierres.reduce((acc, c) => acc + (c.montoPagoRealAsesor || 0), 0);
   const totalTransacciones = cierres.reduce((acc, c) => acc + (c.montoTransaccion || 0), 0);
+  const ticketPromedio = totalCierres > 0 ? totalTransacciones / totalCierres : 0;
+  const comisionPromedio = totalCierres > 0 ? totalComisiones / totalCierres : 0;
 
   const porTipo: Record<string, number> = {};
   const porAsesor: Record<string, { nombre: string; cierres: number; comision: number }> = {};
+  const porCaptador: Record<string, { nombre: string; cierres: number }> = {};
+  const porColocador: Record<string, { nombre: string; cierres: number }> = {};
+
   const pendientes = cierres.filter((c) => c.estado === "PENDIENTE_REVISION").length;
+
+  function sumarRanking(
+    ranking: Record<string, { nombre: string; cierres: number }>,
+    id: string,
+    nombre: string
+  ) {
+    if (!ranking[id]) {
+      ranking[id] = { nombre, cierres: 0 };
+    }
+    ranking[id].cierres += 1;
+  }
 
   for (const c of cierres) {
     porTipo[c.tipoTransaccion] = (porTipo[c.tipoTransaccion] || 0) + 1;
 
-    /*for (const [asesorId, asesorNombre] of [
-      [c.asesorCaptadorId, c.asesorCaptadorNombre],
-      [c.asesorColocadorId, c.asesorColocadorNombre],
-    ]) {
-      if (!porAsesor[asesorId]) {
-        porAsesor[asesorId] = { nombre: asesorNombre, cierres: 0, comision: 0 };
-      }
-      porAsesor[asesorId].cierres += 1;
-      porAsesor[asesorId].comision += c.montoComision / 2; // comisión repartida captador/colocador
-    }*/
-    const asesorId = c.registradoPorTelegramId;
-    const asesorNombre = c.registradoPorNombre;
+    const registradorId = c.registradoPorTelegramId;
+    const registradorNombre = c.registradoPorNombre;
 
-    if (!porAsesor[asesorId]) {
-      porAsesor[asesorId] = {
-        nombre: asesorNombre,
+    if (!porAsesor[registradorId]) {
+      porAsesor[registradorId] = {
+        nombre: registradorNombre,
         cierres: 0,
         comision: 0,
       };
     }
 
-    porAsesor[asesorId].cierres += 1;
-    porAsesor[asesorId].comision += c.montoPagoRealAsesor || 0;
+    porAsesor[registradorId].cierres += 1;
+    porAsesor[registradorId].comision += c.montoPagoRealAsesor || 0;
+
+    sumarRanking(porCaptador, c.asesorCaptadorId, c.asesorCaptadorNombre);
+    sumarRanking(porColocador, c.asesorColocadorId, c.asesorColocadorNombre);
   }
 
+  const rankingAsesores = Object.entries(porAsesor)
+    .map(([id, datos]) => ({ id, ...datos }))
+    .sort((a, b) => b.cierres - a.cierres);
+
+  const rankingProducer = Object.entries(porAsesor)
+    .map(([id, datos]) => ({ id, nombre: datos.nombre, valor: datos.comision }))
+    .sort((a, b) => b.valor - a.valor)
+    .slice(0, 10);
+
+  const rankingCaptadores = Object.entries(porCaptador)
+    .map(([id, datos]) => ({ id, ...datos }))
+    .sort((a, b) => b.cierres - a.cierres)
+    .slice(0, 10);
+
+  const rankingColocadores = Object.entries(porColocador)
+    .map(([id, datos]) => ({ id, ...datos }))
+    .sort((a, b) => b.cierres - a.cierres)
+    .slice(0, 10);
+
   return {
-    totalCierres: cierres.length,
+    totalCierres,
     totalComisiones,
     totalPagosReales,
     totalTransacciones,
+    ticketPromedio,
+    comisionPromedio,
     pendientesRevision: pendientes,
     porTipo,
-    porAsesor: Object.entries(porAsesor)
-      .map(([id, datos]) => ({ id, ...datos }))
-      .sort((a, b) => b.cierres - a.cierres),
+
+    // Mantiene compatibilidad con tu gráfico actual.
+    porAsesor: rankingAsesores,
+
+    // Nuevos KPIs/rankings.
+    topColocacion: rankingAsesores.slice(0, 10),
+    topProducer: rankingProducer,
+    topCaptadores: rankingCaptadores,
+    topColocadores: rankingColocadores,
+
     ultimosCierres: cierres.slice(0, 8),
   };
 }
