@@ -4,6 +4,8 @@ import { obtenerAsesor } from "@/lib/repositories/asesores";
 import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 import { calcularComisionCierre } from "@/lib/comisiones";
+import { fechaHoraBoliviaISO } from "@/lib/fechas";
+import { estaDentroDelRango, obtenerRangoPeriodoBolivia, type PeriodoDashboard,} from "@/lib/fechas";
 
 /**
  * Repositorio de Cierres.
@@ -44,7 +46,9 @@ export async function crearCierre(
     porcentajeCategoriaAsesor: categoria.porcentajeComision,
   });
 
-  const ahora = new Date().toISOString();
+  const ahora = new Date();
+  const ahoraISO = ahora.toISOString();
+  const ahoraBolivia = fechaHoraBoliviaISO(ahora);
   const cierre: Cierre = {
     ...input,
     montoComision: comision.montoComisionTotal,
@@ -54,8 +58,9 @@ export async function crearCierre(
     montoPagoOficinaLocal: comision.montoPagoOficinaLocal,
     porcentajeCategoriaAplicado: comision.porcentajeCategoriaAplicado,
     montoPagoRealAsesor: comision.montoPagoRealAsesor,
-    creadoEn: ahora,
-    actualizadoEn: ahora,
+    creadoEn: ahoraISO,
+    creadoEnBolivia: ahoraBolivia,
+    actualizadoEn: ahoraISO,
     estado: "PENDIENTE_REVISION",
   };
 
@@ -115,8 +120,11 @@ export async function listarTodosLosCierres(): Promise<Cierre[]> {
 }
 
 /** Métricas agregadas para el dashboard. */
-export async function obtenerMetricas() {
-  const cierres = await listarTodosLosCierres();
+export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
+  const todosLosCierres = await listarTodosLosCierres();
+  const rango = obtenerRangoPeriodoBolivia(periodo);
+
+  const cierres = todosLosCierres.filter((c) => estaDentroDelRango(c.creadoEn, rango.inicio, rango.fin));
 
   const totalCierres = cierres.length;
   const totalComisiones = cierres.reduce((acc, c) => acc + (c.montoComision || 0), 0);
@@ -198,6 +206,8 @@ export async function obtenerMetricas() {
     .slice(0, 10);
 
   return {
+    periodo,
+    rango,
     totalCierres,
     totalComisiones,
     totalPagosReales,

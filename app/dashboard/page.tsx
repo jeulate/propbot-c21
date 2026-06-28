@@ -1,23 +1,44 @@
 import { obtenerMetricas } from "@/lib/repositories/cierres";
 import { TarjetaMetrica } from "@/components/tarjeta-metrica";
 import { GraficoRanking } from "@/components/grafico-cierres-asesor";
+import type { PeriodoDashboard } from "@/lib/fechas";
 import Link from "next/link";
 
 function formatoBs(valor: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
 }
 
-export default async function DashboardPage() {
-  const metricas = await obtenerMetricas();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { periodo?: string };
+}) {
+  const periodo: PeriodoDashboard =
+    searchParams?.periodo === "semana" ||
+    searchParams?.periodo === "mes" ||
+    searchParams?.periodo === "anio"
+      ? searchParams.periodo
+      : "mes";
+
+  const metricas = await obtenerMetricas(periodo);
 
   return (
     <div className="flex flex-col gap-8">
-      <header>
-        <h1 className="font-display text-2xl font-semibold text-carbon-900 dark:text-gold-50">Resumen general</h1>
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h1 className="font-display text-2xl font-semibold text-carbon-900 dark:text-gold-50">
+          Resumen general
+        </h1>
         <p className="mt-1 text-sm text-carbon-600 dark:text-gold-100/50">
           Estado actual de los cierres registrados vía el bot de Telegram.
         </p>
-      </header>
+        <p className="mt-1 text-xs text-carbon-500 dark:text-gold-100/40">
+          Periodo: {metricas.rango.etiqueta}
+        </p>
+      </div>
+
+      <SelectorPeriodo periodoActual={periodo} />
+    </header>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-7">
         <TarjetaMetrica etiqueta="Total de cierres" valor={String(metricas.totalCierres)} />
@@ -132,6 +153,32 @@ export default async function DashboardPage() {
           </table>
         </div>
       </section>
+    </div>
+  );
+}
+
+function SelectorPeriodo({ periodoActual }: { periodoActual: PeriodoDashboard }) {
+  const opciones: { valor: PeriodoDashboard; label: string }[] = [
+    { valor: "semana", label: "Semana" },
+    { valor: "mes", label: "Mes" },
+    { valor: "anio", label: "Año" },
+  ];
+
+  return (
+    <div className="flex w-fit rounded-lg border border-gold-200 bg-white p-1 dark:border-carbon-700 dark:bg-carbon-800">
+      {opciones.map((opcion) => (
+        <Link
+          key={opcion.valor}
+          href={`/dashboard?periodo=${opcion.valor}`}
+          className={
+            periodoActual === opcion.valor
+              ? "rounded-md bg-gold-400 px-3 py-1.5 text-sm font-medium text-carbon-950"
+              : "rounded-md px-3 py-1.5 text-sm font-medium text-carbon-600 hover:bg-gold-50 dark:text-gold-100/60 dark:hover:bg-carbon-700"
+          }
+        >
+          {opcion.label}
+        </Link>
+      ))}
     </div>
   );
 }

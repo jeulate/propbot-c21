@@ -41,6 +41,7 @@ export interface Cierre {
   registradoPorTelegramId: string;
   registradoPorNombre: string;
   creadoEn: string; // ISO datetime
+  creadoEnBolivia: string; // yyyy-MM-ddTHH:mm:ss en zona horaria America/La_Paz
   actualizadoEn: string; // ISO datetime
   estado: "PENDIENTE_REVISION" | "VERIFICADO" | "RECHAZADO";
 }
@@ -48,6 +49,7 @@ export interface Cierre {
 export type CierreInput = Omit<
   Cierre,
   | "creadoEn"
+  | "creadoEnBolivia"
   | "actualizadoEn"
   | "estado"
   | "registradoPorTelegramId"
