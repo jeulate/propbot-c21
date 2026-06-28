@@ -1,6 +1,7 @@
 import { obtenerMetricas } from "@/lib/repositories/cierres";
 import { TarjetaMetrica } from "@/components/tarjeta-metrica";
 import { GraficoRanking } from "@/components/grafico-cierres-asesor";
+import { GraficoLineaRegistros } from "@/components/grafico-linea-registros";
 import type { PeriodoDashboard } from "@/lib/fechas";
 import Link from "next/link";
 
@@ -67,6 +68,13 @@ export default async function DashboardPage({
         />
       </section>
 
+      <PanelGrafico
+        titulo="Evolución de registros"
+        descripcion="Cantidad de cierres registrados en el sistema según la fecha y hora real de registro."
+      >
+        <GraficoLineaRegistros datos={metricas.evolucionRegistros} />
+      </PanelGrafico>
+
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <PanelGrafico titulo="Top 10 Colocación" descripcion="Ranking por cantidad de cierres registrados.">
           <GraficoRanking
@@ -122,7 +130,7 @@ export default async function DashboardPage({
             <thead>
               <tr className="border-b border-gold-200 text-xs uppercase tracking-wide text-carbon-500 dark:border-carbon-700 dark:text-gold-100/40">
                 <th className="py-2 pr-4">ID</th>
-                <th className="py-2 pr-4">Fecha</th>
+                <th className="py-2 pr-4">Registrado</th>
                 <th className="py-2 pr-4">Dirección</th>
                 <th className="py-2 pr-4">Tipo</th>
                 <th className="py-2 pr-4">Comisión</th>
@@ -133,7 +141,7 @@ export default async function DashboardPage({
               {metricas.ultimosCierres.map((c) => (
                 <tr key={c.id} className="border-b border-gold-100 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700/50 dark:text-gold-100/80 dark:hover:bg-carbon-800/50">
                   <td className="py-2.5 pr-4 font-mono text-xs">{c.id}</td>
-                  <td className="py-2.5 pr-4">{c.fechaCierre}</td>
+                  <td className="py-2.5 pr-4">{c.creadoEnBolivia ?? c.creadoEn}</td>
                   <td className="py-2.5 pr-4">{c.direccionInmueble}</td>
                   <td className="py-2.5 pr-4">{c.tipoTransaccion}</td>
                   <td className="py-2.5 pr-4">{formatoBs(c.montoComision)}</td>

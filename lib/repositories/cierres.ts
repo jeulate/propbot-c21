@@ -151,6 +151,94 @@ export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
     ranking[id].cierres += 1;
   }
 
+  function crearEvolucionRegistros() {
+  const mapa: Record<string, { etiqueta: string; cierres: number }> = {};
+
+  function agregarBucket(clave: string, etiqueta: string) {
+    if (!mapa[clave]) {
+      mapa[clave] = { etiqueta, cierres: 0 };
+    }
+  }
+
+  const inicio = new Date(rango.inicio);
+  const fin = new Date(rango.fin);
+
+  if (periodo === "anio") {
+    const anio = Number(
+      new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "America/La_Paz",
+        year: "numeric",
+      }).format(inicio)
+    );
+
+    for (let mes = 0; mes < 12; mes++) {
+      const fechaMes = new Date(Date.UTC(anio, mes, 1, 4, 0, 0));
+      const clave = `${anio}-${String(mes + 1).padStart(2, "0")}`;
+
+      const etiqueta = new Intl.DateTimeFormat("es-BO", {
+        month: "short",
+        timeZone: "America/La_Paz",
+      }).format(fechaMes);
+
+      agregarBucket(clave, etiqueta);
+    }
+  } else {
+    const cursor = new Date(inicio);
+
+    while (cursor < fin) {
+      const clave = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "America/La_Paz",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(cursor);
+
+      const etiqueta = new Intl.DateTimeFormat("es-BO", {
+        day: "2-digit",
+        month: "short",
+        timeZone: "America/La_Paz",
+      }).format(cursor);
+
+      agregarBucket(clave, etiqueta);
+
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+  }
+
+  for (const c of cierres) {
+    if (!c.creadoEn) continue;
+
+    const fecha = new Date(c.creadoEn);
+
+    const clave =
+      periodo === "anio"
+        ? new Intl.DateTimeFormat("sv-SE", {
+            timeZone: "America/La_Paz",
+            year: "numeric",
+            month: "2-digit",
+          }).format(fecha)
+        : new Intl.DateTimeFormat("sv-SE", {
+            timeZone: "America/La_Paz",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(fecha);
+
+    if (!mapa[clave]) {
+      mapa[clave] = {
+        etiqueta: clave,
+        cierres: 0,
+      };
+    }
+
+    mapa[clave].cierres += 1;
+  }
+
+  return Object.entries(mapa)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, valor]) => valor);
+}
+
   async function obtenerAsesorRegistradoActivo(id: string) {
     if (!id || id.startsWith("externo:")) return null;
 
@@ -205,6 +293,8 @@ export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
     .sort((a, b) => b.cierres - a.cierres)
     .slice(0, 10);
 
+  const evolucionRegistros = crearEvolucionRegistros();
+
   return {
     periodo,
     rango,
@@ -216,6 +306,7 @@ export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
     comisionPromedio,
     pendientesRevision: pendientes,
     porTipo,
+    evolucionRegistros,
 
     // Mantiene compatibilidad con tu gráfico actual.
     porAsesor: rankingAsesores,
