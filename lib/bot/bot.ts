@@ -628,50 +628,6 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
   await ctx.reply(PREGUNTAS[estado.paso], { parse_mode: "Markdown" });
 }
 
-async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacion) {
-  const d = estado.datos;
-  const resumen = [
-    "✅ *Revisa el resumen del cierre:*",
-    "",
-    `🆔 ID: ${d.id}`,
-    d.tituloPropiedad ? `🏠 Propiedad: ${d.tituloPropiedad}` : "",
-    d.urlPropiedad ? `🔗 URL: ${d.urlPropiedad}` : "",
-    `📅 Fecha cierre: ${d.fechaCierre}`,
-    `🧑‍💼 Asesor captador: ${d.asesorCaptadorNombre}`,
-    d.asesorCaptadorOficina ? `🏢 Oficina captador: ${d.asesorCaptadorOficina}` : "",
-    d.asesorCaptadorTelefono ? `📞 Tel. captador: ${d.asesorCaptadorTelefono}` : "",
-    `🤝 Asesor colocador: ${d.asesorColocadorNombre}`,
-    d.asesorColocadorOficina ? `🏢 Oficina colocador: ${d.asesorColocadorOficina}` : "",
-    d.asesorColocadorTelefono ? `📞 Tel. colocador: ${d.asesorColocadorTelefono}` : "",
-    `📍 Dirección: ${d.direccionInmueble}`,
-    `🏷️ Tipo: ${d.tipoTransaccion}`,
-    `💰 Monto transacción: ${formatoBs(d.montoTransaccion ?? 0)}`,
-    `📊 Comisión base: ${formatoBs(
-    ((d.montoTransaccion ?? 0) * (d.porcentajeBaseComision ?? 0)) / 100
-    )} (${d.porcentajeBaseComision ?? 0}%)`,
-    `🏢 Oficina nacional (${d.porcentajeOficinaNacionalAplicado ?? 0}%): ${formatoBs(
-    d.montoPagoOficinaNacional ?? 0
-    )}`,
-    `🏬 Oficina local (${d.porcentajeOficinaLocalAplicado ?? 0}%): ${formatoBs(
-    d.montoPagoOficinaLocal ?? 0
-    )}`,
-    `💵 Comisión registrada: ${formatoBs(d.montoComision ?? 0)}`,
-    `👤 Pago real asesor (${d.porcentajeCategoriaAplicado ?? 0}%): ${formatoBs(
-    d.montoPagoRealAsesor ?? 0
-    )}`,
-    `💱 T.C.: ${d.tipoCambio}`,
-    `👤 Propietario: ${d.nombrePropietario} (${d.telPropietario})`,
-    `👤 Cliente: ${d.nombreCliente} (${d.telCliente})`,
-    `🔒 Exclusiva: ${d.exclusiva ? "Sí" : "No"}`,
-    "",
-    "Si los datos son correctos, presiona *Guardar cierre*. Si detectas un error, presiona *Cancelar y empezar de nuevo*.",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  await ctx.reply(resumen, { parse_mode: "Markdown", reply_markup: tecladoConfirmacionFinal });
-}
-
 async function crearTecladoSeleccionAsesor(
   rol: "CAPTADOR" | "COLOCADOR",
   telegramIdRegistrante: string
@@ -689,6 +645,61 @@ async function crearTecladoSeleccionAsesor(
   teclado.text("➕ Registrar asesor externo", `asesor:${rol}:EXTERNO`);
 
   return teclado;
+}
+
+function escaparHtml(valor: unknown): string {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacion) {
+  const d = estado.datos;
+
+  const resumen = [
+    "✅ <b>Revisa el resumen del cierre:</b>",
+    "",
+    `🆔 ID: ${escaparHtml(d.id)}`,
+    d.tituloPropiedad ? `🏠 Propiedad: ${escaparHtml(d.tituloPropiedad)}` : "",
+    d.urlPropiedad ? `🔗 URL: ${escaparHtml(d.urlPropiedad)}` : "",
+    `📅 Fecha cierre: ${escaparHtml(d.fechaCierre)}`,
+    `🧑‍💼 Asesor captador: ${escaparHtml(d.asesorCaptadorNombre)}`,
+    d.asesorCaptadorOficina ? `🏢 Oficina captador: ${escaparHtml(d.asesorCaptadorOficina)}` : "",
+    d.asesorCaptadorTelefono ? `📞 Tel. captador: ${escaparHtml(d.asesorCaptadorTelefono)}` : "",
+    `🤝 Asesor colocador: ${escaparHtml(d.asesorColocadorNombre)}`,
+    d.asesorColocadorOficina ? `🏢 Oficina colocador: ${escaparHtml(d.asesorColocadorOficina)}` : "",
+    d.asesorColocadorTelefono ? `📞 Tel. colocador: ${escaparHtml(d.asesorColocadorTelefono)}` : "",
+    `📍 Dirección: ${escaparHtml(d.direccionInmueble)}`,
+    `🏷️ Tipo: ${escaparHtml(d.tipoTransaccion)}`,
+    `💰 Monto transacción: ${escaparHtml(formatoBs(d.montoTransaccion ?? 0))}`,
+    `📊 Comisión base: ${escaparHtml(
+      formatoBs(((d.montoTransaccion ?? 0) * (d.porcentajeBaseComision ?? 0)) / 100)
+    )} (${escaparHtml(d.porcentajeBaseComision ?? 0)}%)`,
+    `🏢 Oficina nacional (${escaparHtml(d.porcentajeOficinaNacionalAplicado ?? 0)}%): ${escaparHtml(
+      formatoBs(d.montoPagoOficinaNacional ?? 0)
+    )}`,
+    `🏬 Oficina local (${escaparHtml(d.porcentajeOficinaLocalAplicado ?? 0)}%): ${escaparHtml(
+      formatoBs(d.montoPagoOficinaLocal ?? 0)
+    )}`,
+    `💵 Comisión registrada: ${escaparHtml(formatoBs(d.montoComision ?? 0))}`,
+    `👤 Pago real asesor (${escaparHtml(d.porcentajeCategoriaAplicado ?? 0)}%): ${escaparHtml(
+      formatoBs(d.montoPagoRealAsesor ?? 0)
+    )}`,
+    `💱 T.C.: ${escaparHtml(d.tipoCambio)}`,
+    `👤 Propietario: ${escaparHtml(d.nombrePropietario)} (${escaparHtml(d.telPropietario)})`,
+    `👤 Cliente: ${escaparHtml(d.nombreCliente)} (${escaparHtml(d.telCliente)})`,
+    `🔒 Exclusiva: ${d.exclusiva ? "Sí" : "No"}`,
+    "",
+    "Si los datos son correctos, presiona <b>Guardar cierre</b>. Si detectas un error, presiona <b>Cancelar y empezar de nuevo</b>.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  await ctx.reply(resumen, {
+    parse_mode: "HTML",
+    reply_markup: tecladoConfirmacionFinal,
+  });
 }
 
 bot.catch((err) => {
