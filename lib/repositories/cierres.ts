@@ -143,11 +143,11 @@ export async function obtenerMetricas() {
     ranking[id].cierres += 1;
   }
 
-  async function esAsesorRegistradoActivo(id: string): Promise<boolean> {
-    if (!id || id.startsWith("externo:")) return false;
+  async function obtenerAsesorRegistradoActivo(id: string) {
+    if (!id || id.startsWith("externo:")) return null;
 
     const asesor = await obtenerAsesor(id);
-    return !!asesor && asesor.activo;
+    return asesor && asesor.activo ? asesor : null;
   }
 
   for (const c of cierres) {
@@ -167,12 +167,14 @@ export async function obtenerMetricas() {
     porAsesor[registradorId].cierres += 1;
     porAsesor[registradorId].comision += c.montoPagoRealAsesor || 0;
 
-    if (await esAsesorRegistradoActivo(c.asesorCaptadorId)) {
-      sumarRanking(porCaptador, c.asesorCaptadorId, c.asesorCaptadorNombre);
+    const captadorRegistrado = await obtenerAsesorRegistradoActivo(c.asesorCaptadorId);
+    if (captadorRegistrado) {
+      sumarRanking(porCaptador, captadorRegistrado.telegramId, captadorRegistrado.nombre);
     }
 
-    if (await esAsesorRegistradoActivo(c.asesorColocadorId)) {
-      sumarRanking(porColocador, c.asesorColocadorId, c.asesorColocadorNombre);
+    const colocadorRegistrado = await obtenerAsesorRegistradoActivo(c.asesorColocadorId);
+    if (colocadorRegistrado) {
+      sumarRanking(porColocador, colocadorRegistrado.telegramId, colocadorRegistrado.nombre);
     }
   }
 

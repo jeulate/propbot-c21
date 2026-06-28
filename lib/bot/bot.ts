@@ -36,6 +36,10 @@ const tecladoTipoTransaccion = new InlineKeyboard()
   .text("Anticrético", "tipo:ANTICRÉTICO");
 
 const tecladoSiNo = new InlineKeyboard().text("✅ Sí", "si-no:SI").text("❌ No", "si-no:NO");
+ const tecladoTipoAsesor = new InlineKeyboard()
+  .text("🏢 Asesor de la oficina", "tipo-asesor:INTERNO")
+  .row()
+  .text("🌐 Asesor externo", "tipo-asesor:EXTERNO");
 
 const tecladoConfirmacionComision = new InlineKeyboard()
   .text("✅ Confirmar comisión", "comision:SI")
@@ -168,7 +172,7 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
 
     await ctx.reply(PREGUNTAS.CAPTADOR_INTERNO_O_EXTERNO, {
       parse_mode: "Markdown",
-      reply_markup: await crearTecladoSeleccionAsesor("CAPTADOR", telegramId),
+      reply_markup: tecladoTipoAsesor,
     });
     return;
   }
@@ -192,7 +196,76 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
     await ctx.editMessageText("🤝 Colocador: *Otro asesor*", { parse_mode: "Markdown" });
     await ctx.reply(PREGUNTAS.COLOCADOR_INTERNO_O_EXTERNO, {
       parse_mode: "Markdown",
-      reply_markup: await crearTecladoSeleccionAsesor("COLOCADOR", telegramId),
+      reply_markup: tecladoTipoAsesor,
+    });
+    return;
+  }
+
+  await ctx.answerCallbackQuery();
+});
+
+bot.callbackQuery(/^tipo-asesor:(INTERNO|EXTERNO)$/, async (ctx) => {
+  const telegramId = String(ctx.from?.id ?? "");
+  const estado = await obtenerEstado(telegramId);
+
+  if (!estado) {
+    await ctx.answerCallbackQuery();
+    await ctx.reply("⚠️ La sesión expiró. Usa /nuevo para empezar nuevamente.");
+    return;
+  }
+
+  const tipo = ctx.match![1] as "INTERNO" | "EXTERNO";
+
+  if (estado.paso === "CAPTADOR_INTERNO_O_EXTERNO") {
+    await ctx.answerCallbackQuery();
+
+    if (tipo === "INTERNO") {
+      await ctx.editMessageText("🧑‍💼 Captador: *Asesor de la oficina*", {
+        parse_mode: "Markdown",
+      });
+
+      await ctx.reply("Selecciona el asesor captador:", {
+        reply_markup: await crearTecladoSeleccionAsesor("CAPTADOR", telegramId),
+      });
+      return;
+    }
+
+    estado.paso = "ASESOR_CAPTADOR_NOMBRE";
+    await guardarEstado(telegramId, estado);
+
+    await ctx.editMessageText("🧑‍💼 Captador: *Asesor externo*", {
+      parse_mode: "Markdown",
+    });
+
+    await ctx.reply(PREGUNTAS.ASESOR_CAPTADOR_NOMBRE, {
+      parse_mode: "Markdown",
+    });
+    return;
+  }
+
+  if (estado.paso === "COLOCADOR_INTERNO_O_EXTERNO") {
+    await ctx.answerCallbackQuery();
+
+    if (tipo === "INTERNO") {
+      await ctx.editMessageText("🤝 Colocador: *Asesor de la oficina*", {
+        parse_mode: "Markdown",
+      });
+
+      await ctx.reply("Selecciona el asesor colocador:", {
+        reply_markup: await crearTecladoSeleccionAsesor("COLOCADOR", telegramId),
+      });
+      return;
+    }
+
+    estado.paso = "ASESOR_COLOCADOR_NOMBRE";
+    await guardarEstado(telegramId, estado);
+
+    await ctx.editMessageText("🤝 Colocador: *Asesor externo*", {
+      parse_mode: "Markdown",
+    });
+
+    await ctx.reply(PREGUNTAS.ASESOR_COLOCADOR_NOMBRE, {
+      parse_mode: "Markdown",
     });
     return;
   }
@@ -217,28 +290,6 @@ bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
 
   if (estado.paso !== pasoEsperado) {
     await ctx.answerCallbackQuery();
-    return;
-  }
-
-  if (asesorId === "EXTERNO") {
-    estado.paso =
-      rol === "CAPTADOR" ? "ASESOR_CAPTADOR_NOMBRE" : "ASESOR_COLOCADOR_NOMBRE";
-
-    await guardarEstado(telegramId, estado);
-    await ctx.answerCallbackQuery();
-    await ctx.editMessageText(
-      rol === "CAPTADOR"
-        ? "🧑‍💼 Captador: *Asesor externo*"
-        : "🤝 Colocador: *Asesor externo*",
-      { parse_mode: "Markdown" }
-    );
-
-    await ctx.reply(
-      rol === "CAPTADOR"
-        ? PREGUNTAS.ASESOR_CAPTADOR_NOMBRE
-        : PREGUNTAS.ASESOR_COLOCADOR_NOMBRE,
-      { parse_mode: "Markdown" }
-    );
     return;
   }
 
@@ -319,9 +370,6 @@ bot.callbackQuery(/^exclusiva:(SI|NO)$/, async (ctx) => {
 
   if (estado.paso !== "EXCLUSIVA") {
     await ctx.answerCallbackQuery();
-    await ctx.reply(
-      `⚠️ No puedo procesar esta respuesta todavía.\n\nPaso actual: ${estado.paso}\n\nUsa /cancelar y vuelve a iniciar con /nuevo.`
-    );
     return;
   }
 
@@ -573,7 +621,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
     const telegramId = String(ctx.from?.id ?? "");
     await ctx.reply(PREGUNTAS.CAPTADOR_INTERNO_O_EXTERNO, {
       parse_mode: "Markdown",
-      reply_markup: await crearTecladoSeleccionAsesor("CAPTADOR", telegramId),
+      reply_markup: tecladoTipoAsesor,
     });
     return;
   }
@@ -582,7 +630,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
     const telegramId = String(ctx.from?.id ?? "");
     await ctx.reply(PREGUNTAS.COLOCADOR_INTERNO_O_EXTERNO, {
       parse_mode: "Markdown",
-      reply_markup: await crearTecladoSeleccionAsesor("COLOCADOR", telegramId),
+      reply_markup: tecladoTipoAsesor,
     });
     return;
   }
@@ -641,8 +689,6 @@ async function crearTecladoSeleccionAsesor(
     teclado.text(asesor.nombre, `asesor:${rol}:${asesor.telegramId}`);
     if ((index + 1) % 1 === 0) teclado.row();
   });
-
-  teclado.text("➕ Registrar asesor externo", `asesor:${rol}:EXTERNO`);
 
   return teclado;
 }
