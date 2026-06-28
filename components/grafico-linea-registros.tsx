@@ -24,7 +24,7 @@ export function GraficoLineaRegistros({
       height: 350,
       fontFamily: "Outfit, sans-serif",
       toolbar: {
-        show: true,
+        show: false,
         tools: {
           download: true,
           selection: true,
