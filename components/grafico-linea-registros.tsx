@@ -3,7 +3,6 @@
 import {
   Area,
   AreaChart,
-  Brush,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -24,55 +23,70 @@ export function GraficoLineaRegistros({
     );
   }
 
+  const anchoMinimo = Math.max(1000, datos.length * 80);
+
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <AreaChart data={datos} margin={{ top: 20, right: 20, left: -10, bottom: 20 }}>
-        <defs>
-          <linearGradient id="colorCierres" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#BEAF87" stopOpacity={0.35} />
-            <stop offset="95%" stopColor="#BEAF87" stopOpacity={0} />
-          </linearGradient>
-        </defs>
+    <div className="custom-scrollbar max-w-full overflow-x-auto">
+      <div style={{ minWidth: anchoMinimo, minHeight: 350 }}>
+        <ResponsiveContainer width="100%" height={350}>
+          <AreaChart data={datos} margin={{ top: 20, right: 24, left: 0, bottom: 20 }}>
+            <defs>
+              <linearGradient id="colorCierres" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#BEAF87" stopOpacity={0.45} />
+                <stop offset="95%" stopColor="#BEAF87" stopOpacity={0} />
+              </linearGradient>
+            </defs>
 
-        <CartesianGrid strokeDasharray="3 3" stroke="#A19276" opacity={0.25} vertical={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#A19276"
+              opacity={0.25}
+              vertical={false}
+            />
 
-        <XAxis
-          dataKey="etiqueta"
-          stroke="#A19276"
-          tick={{ fontSize: 11, fill: "#A19276" }}
-        />
+            <XAxis
+              dataKey="etiqueta"
+              stroke="#A19276"
+              tick={{ fontSize: 12, fill: "#A19276" }}
+              tickLine={false}
+              axisLine={false}
+            />
 
-        <YAxis
-          allowDecimals={false}
-          stroke="#A19276"
-          tick={{ fontSize: 11, fill: "#A19276" }}
-        />
+            <YAxis
+              allowDecimals={false}
+              stroke="#A19276"
+              tick={{ fontSize: 12, fill: "#A19276" }}
+              tickLine={false}
+              axisLine={false}
+            />
 
-        <Tooltip
-          formatter={(value) => [value, "Cierres registrados"]}
-          contentStyle={{
-            background: "#252526",
-            border: "1px solid #BEAF87",
-            borderRadius: 8,
-            color: "#F9F8F3",
-          }}
-        />
+            <Tooltip
+              formatter={(value) => [value, "Cierres registrados"]}
+              labelFormatter={(label) => `Fecha: ${label}`}
+              contentStyle={{
+                background: "#252526",
+                border: "1px solid #BEAF87",
+                borderRadius: 12,
+                color: "#F9F8F3",
+              }}
+            />
 
-        <Area
-          type="monotone"
-          dataKey="cierres"
-          stroke="#BEAF87"
-          strokeWidth={2}
-          fill="url(#colorCierres)"
-        />
-
-        <Brush
-          dataKey="etiqueta"
-          height={24}
-          stroke="#BEAF87"
-          travellerWidth={8}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+            <Area
+              type="monotone"
+              dataKey="cierres"
+              stroke="#BEAF87"
+              strokeWidth={2}
+              fill="url(#colorCierres)"
+              activeDot={{
+                r: 5,
+                stroke: "#BEAF87",
+                strokeWidth: 2,
+                fill: "#252526",
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 }
