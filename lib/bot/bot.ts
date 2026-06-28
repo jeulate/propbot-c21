@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard, type Context } from "grammy";
-import { esAsesorAutorizado, obtenerAsesor } from "@/lib/repositories/asesores";
+import { esAsesorAutorizado, obtenerAsesor, listarAsesores } from "@/lib/repositories/asesores";
 import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 import { calcularComisionCierre } from "@/lib/comisiones";
@@ -161,11 +161,15 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
       return;
     }
 
-    estado.paso = "ASESOR_CAPTADOR_NOMBRE";
+    estado.paso = "CAPTADOR_INTERNO_O_EXTERNO";
     await guardarEstado(telegramId, estado);
     await ctx.answerCallbackQuery();
     await ctx.editMessageText("🧑‍💼 Captador: *Otro asesor*", { parse_mode: "Markdown" });
-    await ctx.reply(PREGUNTAS.ASESOR_CAPTADOR_NOMBRE, { parse_mode: "Markdown" });
+
+    await ctx.reply(PREGUNTAS.CAPTADOR_INTERNO_O_EXTERNO, {
+      parse_mode: "Markdown",
+      reply_markup: await crearTecladoSeleccionAsesor("CAPTADOR", telegramId),
+    });
     return;
   }
 
@@ -182,15 +186,101 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
       return;
     }
 
-    estado.paso = "ASESOR_COLOCADOR_NOMBRE";
+    estado.paso = "COLOCADOR_INTERNO_O_EXTERNO";
     await guardarEstado(telegramId, estado);
     await ctx.answerCallbackQuery();
     await ctx.editMessageText("🤝 Colocador: *Otro asesor*", { parse_mode: "Markdown" });
-    await ctx.reply(PREGUNTAS.ASESOR_COLOCADOR_NOMBRE, { parse_mode: "Markdown" });
+    await ctx.reply(PREGUNTAS.COLOCADOR_INTERNO_O_EXTERNO, {
+      parse_mode: "Markdown",
+      reply_markup: await crearTecladoSeleccionAsesor("COLOCADOR", telegramId),
+    });
     return;
   }
 
   await ctx.answerCallbackQuery();
+});
+
+bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
+  const telegramId = String(ctx.from?.id ?? "");
+  const estado = await obtenerEstado(telegramId);
+
+  if (!estado) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
+
+  const rol = ctx.match![1] as "CAPTADOR" | "COLOCADOR";
+  const asesorId = ctx.match![2];
+
+  const pasoEsperado =
+    rol === "CAPTADOR" ? "CAPTADOR_INTERNO_O_EXTERNO" : "COLOCADOR_INTERNO_O_EXTERNO";
+
+  if (estado.paso !== pasoEsperado) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
+
+  if (asesorId === "EXTERNO") {
+    estado.paso =
+      rol === "CAPTADOR" ? "ASESOR_CAPTADOR_NOMBRE" : "ASESOR_COLOCADOR_NOMBRE";
+
+    await guardarEstado(telegramId, estado);
+    await ctx.answerCallbackQuery();
+    await ctx.editMessageText(
+      rol === "CAPTADOR"
+        ? "🧑‍💼 Captador: *Asesor externo*"
+        : "🤝 Colocador: *Asesor externo*",
+      { parse_mode: "Markdown" }
+    );
+
+    await ctx.reply(
+      rol === "CAPTADOR"
+        ? PREGUNTAS.ASESOR_CAPTADOR_NOMBRE
+        : PREGUNTAS.ASESOR_COLOCADOR_NOMBRE,
+      { parse_mode: "Markdown" }
+    );
+    return;
+  }
+
+  const asesor = await obtenerAsesor(asesorId);
+
+  if (!asesor || !asesor.activo) {
+    await ctx.answerCallbackQuery();
+    await ctx.reply("⚠️ El asesor seleccionado no existe o está inactivo.");
+    return;
+  }
+
+  if (rol === "CAPTADOR") {
+    estado.datos.asesorCaptadorId = asesor.telegramId;
+    estado.datos.asesorCaptadorNombre = asesor.nombre;
+    estado.datos.asesorCaptadorOficina = "Century 21 Rita Quiroga";
+    estado.paso = "COLOCADOR_ES_REGISTRANTE";
+
+    await guardarEstado(telegramId, estado);
+    await ctx.answerCallbackQuery();
+    await ctx.editMessageText(`🧑‍💼 Captador seleccionado: *${asesor.nombre}*`, {
+      parse_mode: "Markdown",
+    });
+
+    await ctx.reply(PREGUNTAS.COLOCADOR_ES_REGISTRANTE, {
+      parse_mode: "Markdown",
+      reply_markup: tecladoSiNo,
+    });
+    return;
+  }
+
+  estado.datos.asesorColocadorId = asesor.telegramId;
+  estado.datos.asesorColocadorNombre = asesor.nombre;
+  estado.datos.asesorColocadorOficina = "Century 21 Rita Quiroga";
+  estado.paso = "DIRECCION_INMUEBLE";
+
+  await guardarEstado(telegramId, estado);
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(`🤝 Colocador seleccionado: *${asesor.nombre}*`, {
+    parse_mode: "Markdown",
+  });
+
+  await ctx.reply(PREGUNTAS.DIRECCION_INMUEBLE, { parse_mode: "Markdown" });
 });
 
 bot.callbackQuery(/^comision:(SI|NO)$/, async (ctx) => {
@@ -220,14 +310,25 @@ bot.callbackQuery(/^comision:(SI|NO)$/, async (ctx) => {
 bot.callbackQuery(/^exclusiva:(SI|NO)$/, async (ctx) => {
   const telegramId = String(ctx.from?.id ?? "");
   const estado = await obtenerEstado(telegramId);
-  if (!estado || estado.paso !== "EXCLUSIVA") {
+
+  if (!estado) {
     await ctx.answerCallbackQuery();
+    await ctx.reply("⚠️ La sesión expiró. Usa /nuevo para empezar nuevamente.");
+    return;
+  }
+
+  if (estado.paso !== "EXCLUSIVA") {
+    await ctx.answerCallbackQuery();
+    await ctx.reply(
+      `⚠️ No puedo procesar esta respuesta todavía.\n\nPaso actual: ${estado.paso}\n\nUsa /cancelar y vuelve a iniciar con /nuevo.`
+    );
     return;
   }
 
   const esSi = ctx.match![1] === "SI";
   estado.datos.exclusiva = esSi;
   estado.paso = "CONFIRMACION";
+
   await guardarEstado(telegramId, estado);
   await ctx.answerCallbackQuery();
   await ctx.editMessageText(`🔒 Exclusiva: *${esSi ? "Sí" : "No"}*`, { parse_mode: "Markdown" });
@@ -467,6 +568,25 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
     await ctx.reply(PREGUNTAS[estado.paso], { parse_mode: "Markdown", reply_markup: tecladoSiNo });
     return;
   }
+ 
+  if (estado.paso === "CAPTADOR_INTERNO_O_EXTERNO") {
+    const telegramId = String(ctx.from?.id ?? "");
+    await ctx.reply(PREGUNTAS.CAPTADOR_INTERNO_O_EXTERNO, {
+      parse_mode: "Markdown",
+      reply_markup: await crearTecladoSeleccionAsesor("CAPTADOR", telegramId),
+    });
+    return;
+  }
+
+  if (estado.paso === "COLOCADOR_INTERNO_O_EXTERNO") {
+    const telegramId = String(ctx.from?.id ?? "");
+    await ctx.reply(PREGUNTAS.COLOCADOR_INTERNO_O_EXTERNO, {
+      parse_mode: "Markdown",
+      reply_markup: await crearTecladoSeleccionAsesor("COLOCADOR", telegramId),
+    });
+    return;
+  }
+
   if (estado.paso === "TIPO_TRANSACCION") {
     await ctx.reply(PREGUNTAS.TIPO_TRANSACCION, {
       parse_mode: "Markdown",
@@ -550,6 +670,25 @@ async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacio
     .join("\n");
 
   await ctx.reply(resumen, { parse_mode: "Markdown", reply_markup: tecladoConfirmacionFinal });
+}
+
+async function crearTecladoSeleccionAsesor(
+  rol: "CAPTADOR" | "COLOCADOR",
+  telegramIdRegistrante: string
+) {
+  const asesores = (await listarAsesores())
+    .filter((a) => a.activo && a.telegramId !== telegramIdRegistrante);
+
+  const teclado = new InlineKeyboard();
+
+  asesores.slice(0, 20).forEach((asesor, index) => {
+    teclado.text(asesor.nombre, `asesor:${rol}:${asesor.telegramId}`);
+    if ((index + 1) % 1 === 0) teclado.row();
+  });
+
+  teclado.text("➕ Registrar asesor externo", `asesor:${rol}:EXTERNO`);
+
+  return teclado;
 }
 
 bot.catch((err) => {

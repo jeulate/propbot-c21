@@ -143,6 +143,13 @@ export async function obtenerMetricas() {
     ranking[id].cierres += 1;
   }
 
+  async function esAsesorRegistradoActivo(id: string): Promise<boolean> {
+    if (!id || id.startsWith("externo:")) return false;
+
+    const asesor = await obtenerAsesor(id);
+    return !!asesor && asesor.activo;
+  }
+
   for (const c of cierres) {
     porTipo[c.tipoTransaccion] = (porTipo[c.tipoTransaccion] || 0) + 1;
 
@@ -160,8 +167,13 @@ export async function obtenerMetricas() {
     porAsesor[registradorId].cierres += 1;
     porAsesor[registradorId].comision += c.montoPagoRealAsesor || 0;
 
-    sumarRanking(porCaptador, c.asesorCaptadorId, c.asesorCaptadorNombre);
-    sumarRanking(porColocador, c.asesorColocadorId, c.asesorColocadorNombre);
+    if (await esAsesorRegistradoActivo(c.asesorCaptadorId)) {
+      sumarRanking(porCaptador, c.asesorCaptadorId, c.asesorCaptadorNombre);
+    }
+
+    if (await esAsesorRegistradoActivo(c.asesorColocadorId)) {
+      sumarRanking(porColocador, c.asesorColocadorId, c.asesorColocadorNombre);
+    }
   }
 
   const rankingAsesores = Object.entries(porAsesor)

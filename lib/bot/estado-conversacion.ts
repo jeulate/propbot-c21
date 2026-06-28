@@ -14,6 +14,8 @@ export type PasoFormulario =
   | "ID"
   | "FECHA_CIERRE"
   | "CAPTADOR_ES_REGISTRANTE"
+  | "CAPTADOR_INTERNO_O_EXTERNO"
+  | "COLOCADOR_INTERNO_O_EXTERNO"
   | "ASESOR_CAPTADOR_NOMBRE"
   | "ASESOR_CAPTADOR_OFICINA"
   | "ASESOR_CAPTADOR_TELEFONO"
@@ -37,10 +39,12 @@ export const ORDEN_PASOS: PasoFormulario[] = [
   "ID",
   "FECHA_CIERRE",
   "CAPTADOR_ES_REGISTRANTE",
+  "CAPTADOR_INTERNO_O_EXTERNO",
   "ASESOR_CAPTADOR_NOMBRE",
   "ASESOR_CAPTADOR_OFICINA",
   "ASESOR_CAPTADOR_TELEFONO",
   "COLOCADOR_ES_REGISTRANTE",
+  "COLOCADOR_INTERNO_O_EXTERNO",
   "ASESOR_COLOCADOR_NOMBRE",
   "ASESOR_COLOCADOR_OFICINA",
   "ASESOR_COLOCADOR_TELEFONO",
@@ -127,11 +131,13 @@ export const PREGUNTAS: Record<PasoFormulario, string> = {
   FECHA_CIERRE: "📅 ¿Cuál es la *fecha de cierre*? (formato DD/MM/AAAA)",
   CAPTADOR_ES_REGISTRANTE:
     "🧑‍💼 En este cierre, ¿el *asesor captador* eres tú (quien está registrando la operación)?",
+  CAPTADOR_INTERNO_O_EXTERNO: "🧑‍💼 ¿El asesor captador pertenece a esta oficina?",  
   ASESOR_CAPTADOR_NOMBRE: "🧑‍💼 Escribe el *nombre del asesor captador*.",
   ASESOR_CAPTADOR_OFICINA: "🏢 Escribe la *oficina a la que pertenece el asesor captador*.",
   ASESOR_CAPTADOR_TELEFONO: "📞 Escribe el *teléfono del asesor captador*.",
   COLOCADOR_ES_REGISTRANTE:
     "🤝 En este cierre, ¿el *asesor colocador* eres tú (quien está registrando la operación)?",
+  COLOCADOR_INTERNO_O_EXTERNO: "🤝 ¿El asesor colocador pertenece a esta oficina?",  
   ASESOR_COLOCADOR_NOMBRE: "🤝 Escribe el *nombre del asesor colocador*.",
   ASESOR_COLOCADOR_OFICINA: "🏢 Escribe la *oficina a la que pertenece el asesor colocador*.",
   ASESOR_COLOCADOR_TELEFONO: "📞 Escribe el *teléfono del asesor colocador*.",

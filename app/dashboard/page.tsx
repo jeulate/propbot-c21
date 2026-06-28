@@ -22,14 +22,14 @@ export default async function DashboardPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-7">
         <TarjetaMetrica etiqueta="Total de cierres" valor={String(metricas.totalCierres)} />
         <TarjetaMetrica
-          etiqueta="Monto total transado"
+          etiqueta="Monto total en transacciones"
           valor={formatoBs(metricas.totalTransacciones)}
         />
         <TarjetaMetrica
           etiqueta="Pago real a asesores"
           valor={formatoBs(metricas.totalPagosReales)}
         />
-        <TarjetaMetrica etiqueta="Comisiones generadas" valor={formatoBs(metricas.totalComisiones)} />
+        <TarjetaMetrica etiqueta="Comisiones Pagadas a Oficina" valor={formatoBs(metricas.totalComisiones)} />
         <TarjetaMetrica
           etiqueta="Ticket promedio"
           valor={formatoBs(metricas.ticketPromedio)}
