@@ -3,6 +3,7 @@
 import {
   Area,
   AreaChart,
+  Brush,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -27,9 +28,9 @@ export function GraficoLineaRegistros({
 
   return (
     <div className="custom-scrollbar max-w-full overflow-x-auto">
-      <div style={{ minWidth: anchoMinimo, minHeight: 350 }}>
-        <ResponsiveContainer width="100%" height={350}>
-          <AreaChart data={datos} margin={{ top: 20, right: 24, left: 0, bottom: 20 }}>
+      <div style={{ minWidth: anchoMinimo, minHeight: 390 }}>
+        <ResponsiveContainer width="100%" height={390}>
+          <AreaChart data={datos} margin={{ top: 20, right: 24, left: 0, bottom: 36 }}>
             <defs>
               <linearGradient id="colorCierres" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#BEAF87" stopOpacity={0.45} />
@@ -37,16 +38,10 @@ export function GraficoLineaRegistros({
               </linearGradient>
             </defs>
 
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="#A19276"
-              opacity={0.25}
-              vertical={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="#A19276" opacity={0.25} vertical={false} />
 
             <XAxis
               dataKey="etiqueta"
-              stroke="#A19276"
               tick={{ fontSize: 12, fill: "#A19276" }}
               tickLine={false}
               axisLine={false}
@@ -54,7 +49,6 @@ export function GraficoLineaRegistros({
 
             <YAxis
               allowDecimals={false}
-              stroke="#A19276"
               tick={{ fontSize: 12, fill: "#A19276" }}
               tickLine={false}
               axisLine={false}
@@ -83,6 +77,16 @@ export function GraficoLineaRegistros({
                 strokeWidth: 2,
                 fill: "#252526",
               }}
+            />
+
+            <Brush
+              dataKey="etiqueta"
+              height={28}
+              travellerWidth={10}
+              stroke="#BEAF87"
+              fill="#F9F8F3"
+              startIndex={Math.max(0, datos.length - 12)}
+              endIndex={datos.length - 1}
             />
           </AreaChart>
         </ResponsiveContainer>

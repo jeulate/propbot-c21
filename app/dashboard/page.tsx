@@ -3,6 +3,7 @@ import { TarjetaMetrica } from "@/components/tarjeta-metrica";
 import { GraficoRanking } from "@/components/grafico-cierres-asesor";
 import { GraficoLineaRegistros } from "@/components/grafico-linea-registros";
 import type { PeriodoDashboard } from "@/lib/fechas";
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 function formatoBs(valor: number): string {
@@ -70,7 +71,7 @@ export default async function DashboardPage({
 
       <PanelGrafico
         titulo="Evolución de registros"
-        descripcion="Cantidad de cierres registrados en el sistema según la fecha y hora real de registro."
+        descripcion="Arrastra las manijas inferiores para acercar o ampliar el rango visible. Usa el scroll horizontal para revisar más fechas."
       >
         <GraficoLineaRegistros datos={metricas.evolucionRegistros} />
       </PanelGrafico>
@@ -198,7 +199,7 @@ function PanelGrafico({
 }: {
   titulo: string;
   descripcion: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
