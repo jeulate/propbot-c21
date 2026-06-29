@@ -60,3 +60,100 @@ html:not(.dark) .bg-ledger {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Flatpickr personalizado - Century 21 / Gold Carbon */
+.flatpickr-calendar {
+  border: 1px solid #a19276 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28) !important;
+  font-family: Outfit, sans-serif !important;
+  overflow: hidden !important;
+}
+
+.dark .flatpickr-calendar {
+  background: #252526 !important;
+  color: #f9f8f3 !important;
+  border-color: #43454b !important;
+}
+
+.dark .flatpickr-months,
+.dark .flatpickr-weekdays {
+  background: #252526 !important;
+}
+
+.dark .flatpickr-current-month,
+.dark .flatpickr-current-month input.cur-year,
+.dark .flatpickr-current-month .flatpickr-monthDropdown-months {
+  color: #f9f8f3 !important;
+  font-weight: 600 !important;
+}
+
+.dark .flatpickr-weekday {
+  color: #beaf87 !important;
+}
+
+.dark .flatpickr-day {
+  color: #f9f8f3 !important;
+  border-radius: 10px !important;
+}
+
+.dark .flatpickr-day:hover {
+  background: rgba(190, 175, 135, 0.18) !important;
+  border-color: rgba(190, 175, 135, 0.35) !important;
+}
+
+.dark .flatpickr-day.selected,
+.dark .flatpickr-day.startRange,
+.dark .flatpickr-day.endRange {
+  background: #beaf87 !important;
+  border-color: #beaf87 !important;
+  color: #252526 !important;
+}
+
+.dark .flatpickr-day.inRange {
+  background: rgba(190, 175, 135, 0.22) !important;
+  border-color: transparent !important;
+  color: #f9f8f3 !important;
+  box-shadow: -5px 0 0 rgba(190, 175, 135, 0.22),
+    5px 0 0 rgba(190, 175, 135, 0.22) !important;
+}
+
+.dark .flatpickr-day.today {
+  border-color: #beaf87 !important;
+}
+
+.dark .flatpickr-day.prevMonthDay,
+.dark .flatpickr-day.nextMonthDay {
+  color: rgba(249, 248, 243, 0.28) !important;
+}
+
+.dark .flatpickr-prev-month,
+.dark .flatpickr-next-month {
+  color: #f9f8f3 !important;
+  fill: #f9f8f3 !important;
+}
+
+.dark .flatpickr-prev-month:hover svg,
+.dark .flatpickr-next-month:hover svg {
+  fill: #beaf87 !important;
+}
+
+/* Modo claro */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #beaf87 !important;
+  border-color: #beaf87 !important;
+  color: #252526 !important;
+}
+
+.flatpickr-day.inRange {
+  background: rgba(190, 175, 135, 0.2) !important;
+  border-color: transparent !important;
+  box-shadow: -5px 0 0 rgba(190, 175, 135, 0.2),
+    5px 0 0 rgba(190, 175, 135, 0.2) !important;
+}
+
+.flatpickr-day.today {
+  border-color: #a19276 !important;
+}
