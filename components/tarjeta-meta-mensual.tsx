@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
+import { useEffect, useState } from "react";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -45,6 +46,23 @@ export function TarjetaMetaMensual({
   const porcentajeVisual = Math.min(Math.max(meta.porcentaje, 0), 100);
   const mesNombre = MESES[meta.mes - 1] ?? String(meta.mes);
   const variacionPositiva = meta.variacionObjetivoVsMesAnterior >= 0;
+  const [esDark, setEsDark] = useState(false);
+
+    useEffect(() => {
+    const actualizarTema = () => {
+        setEsDark(document.documentElement.classList.contains("dark"));
+    };
+
+    actualizarTema();
+
+    const observer = new MutationObserver(actualizarTema);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+    }, []);
 
   const options: ApexOptions = {
     chart: {
@@ -74,7 +92,7 @@ export function TarjetaMetaMensual({
             offsetY: -2,
             fontSize: "28px",
             fontWeight: 700,
-            color: "#F9F8F3",
+            color: esDark ? "#F9F8F3" : "#252526",
             formatter: (value) => `${Number(value).toFixed(1)}%`,
           },
         },
