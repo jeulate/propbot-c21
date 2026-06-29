@@ -49,6 +49,8 @@ export function SelectorRangoFechas() {
         locale: Spanish,
         allowInput: false,
         disableMobile: true,
+        appendTo: typeof window !== "undefined" ? document.body : undefined,
+        position: "auto right",
       }}
       onChange={(fechas) => {
         if (fechas.length !== 2) return;
