@@ -1,8 +1,9 @@
 import { obtenerMetricas } from "@/lib/repositories/cierres";
-import { TarjetaMetrica } from "@/components/tarjeta-metrica";
+import { TarjetaMetrica, TarjetaMetricaSaas } from "@/components/tarjeta-metrica";
 import { GraficoRanking } from "@/components/grafico-cierres-asesor";
 import { GraficoLineaRegistros } from "@/components/grafico-linea-registros";
 import type { PeriodoDashboard } from "@/lib/fechas";
+import { formatearFechaHoraBolivia } from "@/lib/fechas";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
@@ -42,17 +43,42 @@ export default async function DashboardPage({
       <SelectorPeriodo periodoActual={periodo} />
     </header>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-7">
-        <TarjetaMetrica etiqueta="Total de cierres" valor={String(metricas.totalCierres)} />
-        <TarjetaMetrica
-          etiqueta="Monto total en transacciones"
-          valor={formatoBs(metricas.totalTransacciones)}
-        />
+      <section className="shadow-panel rounded-xl border border-gold-200 bg-white dark:border-carbon-700 dark:bg-carbon-800">
+        <div className="flex items-center justify-between border-b border-gold-200 px-5 py-4 dark:border-carbon-700">
+          <h2 className="font-display text-lg font-semibold text-carbon-900 dark:text-gold-50">
+            Estado Actual de KPI´s
+          </h2>
+          <p className="text-xs text-carbon-500 dark:text-gold-100/40">
+            Comparado con el período anterior
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3">
+          <TarjetaMetricaSaas
+            etiqueta="Total de cierres"
+            valor={String(metricas.totalCierres)}
+            variacion={metricas.comparativas.totalCierres.variacionPorcentual}
+          />
+
+          <TarjetaMetricaSaas
+            etiqueta="Monto total en transacciones"
+            valor={formatoBs(metricas.totalTransacciones)}
+            variacion={metricas.comparativas.totalTransacciones.variacionPorcentual}
+          />
+
+          <TarjetaMetricaSaas
+            etiqueta="Comisiones pagadas a oficina"
+            valor={formatoBs(metricas.totalComisiones)}
+            variacion={metricas.comparativas.totalComisiones.variacionPorcentual}
+          />
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <TarjetaMetrica
           etiqueta="Pago real a asesores"
           valor={formatoBs(metricas.totalPagosReales)}
         />
-        <TarjetaMetrica etiqueta="Comisiones Pagadas a Oficina" valor={formatoBs(metricas.totalComisiones)} />
         <TarjetaMetrica
           etiqueta="Ticket promedio"
           valor={formatoBs(metricas.ticketPromedio)}
@@ -68,7 +94,6 @@ export default async function DashboardPage({
           subtexto={metricas.pendientesRevision > 0 ? "Requieren verificación" : "Todo verificado"}
         />
       </section>
-
       <PanelGrafico
         titulo="Evolución de registros"
         descripcion="Arrastra las manijas inferiores para acercar o ampliar el rango visible. Usa el scroll horizontal para revisar más fechas."
@@ -142,7 +167,7 @@ export default async function DashboardPage({
               {metricas.ultimosCierres.map((c) => (
                 <tr key={c.id} className="border-b border-gold-100 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700/50 dark:text-gold-100/80 dark:hover:bg-carbon-800/50">
                   <td className="py-2.5 pr-4 font-mono text-xs">{c.id}</td>
-                  <td className="py-2.5 pr-4">{c.creadoEnBolivia ?? c.creadoEn}</td>
+                  <td className="py-2.5 pr-4">{formatearFechaHoraBolivia(c.creadoEn)}</td>
                   <td className="py-2.5 pr-4">{c.direccionInmueble}</td>
                   <td className="py-2.5 pr-4">{c.tipoTransaccion}</td>
                   <td className="py-2.5 pr-4">{formatoBs(c.montoComision)}</td>

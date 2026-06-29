@@ -126,10 +126,55 @@ export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
 
   const cierres = todosLosCierres.filter((c) => estaDentroDelRango(c.creadoEn, rango.inicio, rango.fin));
 
+  const fechaAnterior = new Date(new Date(rango.inicio).getTime() - 1);
+  const rangoAnterior = obtenerRangoPeriodoBolivia(periodo, fechaAnterior);
+
+  const cierresPeriodoAnterior = todosLosCierres.filter((c) =>
+     estaDentroDelRango(c.creadoEn, rangoAnterior.inicio, rangoAnterior.fin)
+  );
+
   const totalCierres = cierres.length;
   const totalComisiones = cierres.reduce((acc, c) => acc + (c.montoComision || 0), 0);
   const totalPagosReales = cierres.reduce((acc, c) => acc + (c.montoPagoRealAsesor || 0), 0);
   const totalTransacciones = cierres.reduce((acc, c) => acc + (c.montoTransaccion || 0), 0);
+
+  const totalCierresAnterior = cierresPeriodoAnterior.length;
+  const totalComisionesAnterior = cierresPeriodoAnterior.reduce(
+    (acc, c) => acc + (c.montoComision || 0),
+    0
+  );
+  const totalTransaccionesAnterior = cierresPeriodoAnterior.reduce(
+    (acc, c) => acc + (c.montoTransaccion || 0),
+    0
+  );
+
+  function calcularVariacion(actual: number, anterior: number): number {
+    if (anterior === 0) {
+      return actual > 0 ? 100 : 0;
+    }
+
+    return ((actual - anterior) / anterior) * 100;
+  }
+
+  const comparativas = {
+    totalCierres: {
+      actual: totalCierres,
+      anterior: totalCierresAnterior,
+      variacionPorcentual: calcularVariacion(totalCierres, totalCierresAnterior),
+    },
+    totalTransacciones: {
+      actual: totalTransacciones,
+      anterior: totalTransaccionesAnterior,
+      variacionPorcentual: calcularVariacion(totalTransacciones, totalTransaccionesAnterior),
+    },
+    totalComisiones: {
+      actual: totalComisiones,
+      anterior: totalComisionesAnterior,
+      variacionPorcentual: calcularVariacion(totalComisiones, totalComisionesAnterior),
+    },
+  };
+
+
   const ticketPromedio = totalCierres > 0 ? totalTransacciones / totalCierres : 0;
   const comisionPromedio = totalCierres > 0 ? totalComisiones / totalCierres : 0;
 
@@ -298,6 +343,8 @@ export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
   return {
     periodo,
     rango,
+    rangoAnterior,
+    comparativas,
     totalCierres,
     totalComisiones,
     totalPagosReales,
