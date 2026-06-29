@@ -74,7 +74,7 @@ export function TarjetaMetaMensual({
             offsetY: -2,
             fontSize: "28px",
             fontWeight: 700,
-            color: "#252526",
+            color: "#F9F8F3",
             formatter: (value) => `${Number(value).toFixed(1)}%`,
           },
         },
