@@ -45,9 +45,12 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
         <SelectorPeriodo periodoActual={periodo} />
-        <SelectorRangoFechas />
+
+        <div className="w-full sm:w-auto">
+          <SelectorRangoFechas />
+        </div>
       </div>
     </header>
 
@@ -219,7 +222,7 @@ function SelectorPeriodo({ periodoActual }: { periodoActual: PeriodoDashboard })
   ];
 
   return (
-    <div className="flex w-fit rounded-lg border border-gold-200 bg-white p-1 dark:border-carbon-700 dark:bg-carbon-800">
+    <div className="grid w-full grid-cols-3 rounded-lg sm:flex sm:w-fit border border-gold-200 bg-white p-1 dark:border-carbon-700 dark:bg-carbon-800">
       {opciones.map((opcion) => (
         <Link
           key={opcion.valor}

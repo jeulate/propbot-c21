@@ -63,13 +63,13 @@ export function SelectorRangoFechas() {
         );
       }}
       render={(_, ref) => (
-        <div className="relative">
+        <div className="relative w-full sm:w-64">
           <input
             ref={ref}
             readOnly
             value={valorVisible}
             placeholder="Rango de fechas"
-            className="focus-ring w-64 cursor-pointer rounded-lg border border-gold-200 bg-white px-4 py-2.5 pr-10 text-sm font-medium text-carbon-700 placeholder:text-carbon-400 dark:border-carbon-700 dark:bg-carbon-800 dark:text-gold-50 dark:placeholder:text-gold-100/40"
+            className="focus-ring w-full cursor-pointer rounded-lg border border-gold-200 bg-white px-4 py-2.5 pr-10 text-sm font-medium text-carbon-700 placeholder:text-carbon-400 dark:border-carbon-700 dark:bg-carbon-800 dark:text-gold-50 dark:placeholder:text-gold-100/40"
           />
 
           <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
