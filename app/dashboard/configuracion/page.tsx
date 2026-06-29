@@ -4,6 +4,8 @@ import { PERMISOS } from "@/types/domain";
 import { listarCategoriasAsesor } from "@/lib/repositories/categorias-asesor";
 import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 import { GestionCategorias } from "@/components/gestion-categorias";
+import { GestionMetas } from "@/components/gestion-metas";
+import { listarMetasMensuales } from "@/lib/repositories/metas-mensuales";
 
 export default async function ConfiguracionPage() {
   const sesion = await obtenerSesionActual();
@@ -11,6 +13,7 @@ export default async function ConfiguracionPage() {
 
   const categorias = await listarCategoriasAsesor();
   const configuracion = await obtenerConfiguracionComisiones();
+  const metas = await listarMetasMensuales();
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,6 +28,8 @@ export default async function ConfiguracionPage() {
         categoriasIniciales={categorias}
         porcentajeOficinaNacionalInicial={configuracion.porcentajeOficinaNacional}
       />
+      
+      <GestionMetas metasIniciales={metas} />
     </div>
   );
 }

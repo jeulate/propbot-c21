@@ -97,6 +97,20 @@ export interface ConfiguracionComisiones {
   actualizadoEn: string;
 }
 
+export interface MetaMensual {
+  id: string; // meta:<anio>:<mes>
+  anio: number;
+  mes: number; // 1-12
+  montoObjetivo: number;
+  creadoEn: string; // ISO datetime UTC
+  actualizadoEn: string; // ISO datetime UTC
+}
+
+export type MetaMensualInput = Omit<
+  MetaMensual,
+  "id" | "creadoEn" | "actualizadoEn"
+>;
+
 /** Permisos por rol — usado tanto en backend (rutas API) como en UI (ocultar acciones) */
 export const PERMISOS: Record<RolUsuarioAdmin, { exportar: boolean; verificar: boolean; gestionarAsesores: boolean; gestionarUsuarios: boolean }> = {
   ADMIN: { exportar: true, verificar: true, gestionarAsesores: true, gestionarUsuarios: true },

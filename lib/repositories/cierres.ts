@@ -6,6 +6,7 @@ import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion
 import { calcularComisionCierre } from "@/lib/comisiones";
 import { fechaHoraBoliviaISO } from "@/lib/fechas";
 import { estaDentroDelRango, obtenerRangoPeriodoBolivia, type PeriodoDashboard,} from "@/lib/fechas";
+import { obtenerMetaMensual } from "@/lib/repositories/metas-mensuales";
 
 /**
  * Repositorio de Cierres.
@@ -174,6 +175,63 @@ export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
     },
   };
 
+  const fechaBaseBolivia = new Date(rango.inicio);
+
+const anioMeta = Number(
+  new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/La_Paz",
+    year: "numeric",
+  }).format(fechaBaseBolivia)
+);
+
+const mesMeta = Number(
+  new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/La_Paz",
+    month: "2-digit",
+  }).format(fechaBaseBolivia)
+);
+
+const metaActual = await obtenerMetaMensual(anioMeta, mesMeta);
+
+const fechaMetaAnterior = new Date(Date.UTC(anioMeta, mesMeta - 2, 1, 4, 0, 0));
+
+const anioMetaAnterior = Number(
+  new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/La_Paz",
+    year: "numeric",
+  }).format(fechaMetaAnterior)
+);
+
+const mesMetaAnterior = Number(
+  new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/La_Paz",
+    month: "2-digit",
+  }).format(fechaMetaAnterior)
+);
+
+  const metaAnterior = await obtenerMetaMensual(anioMetaAnterior, mesMetaAnterior);
+
+  const objetivoMeta = metaActual?.montoObjetivo ?? 0;
+  const objetivoMetaAnterior = metaAnterior?.montoObjetivo ?? 0;
+
+  const porcentajeMeta =
+    objetivoMeta > 0 ? Math.min((totalComisiones / objetivoMeta) * 100, 100) : 0;
+
+  const faltanteMeta = Math.max(objetivoMeta - totalComisiones, 0);
+  const excedenteMeta = Math.max(totalComisiones - objetivoMeta, 0);
+
+  const metaMensual = {
+    anio: anioMeta,
+    mes: mesMeta,
+    objetivo: objetivoMeta,
+    objetivoAnterior: objetivoMetaAnterior,
+    actual: totalComisiones,
+    porcentaje: porcentajeMeta,
+    faltante: faltanteMeta,
+    excedente: excedenteMeta,
+    variacionObjetivoVsMesAnterior: calcularVariacion(objetivoMeta, objetivoMetaAnterior),
+    configurada: !!metaActual,
+  };
 
   const ticketPromedio = totalCierres > 0 ? totalTransacciones / totalCierres : 0;
   const comisionPromedio = totalCierres > 0 ? totalComisiones / totalCierres : 0;
@@ -345,6 +403,7 @@ export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
     rango,
     rangoAnterior,
     comparativas,
+    metaMensual,
     totalCierres,
     totalComisiones,
     totalPagosReales,

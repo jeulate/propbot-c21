@@ -1,4 +1,5 @@
 import { obtenerMetricas } from "@/lib/repositories/cierres";
+import { TarjetaMetaMensual } from "@/components/tarjeta-meta-mensual";
 import { TarjetaMetrica, TarjetaMetricaSaas } from "@/components/tarjeta-metrica";
 import { GraficoRanking } from "@/components/grafico-cierres-asesor";
 import { GraficoLineaRegistros } from "@/components/grafico-linea-registros";
@@ -94,12 +95,24 @@ export default async function DashboardPage({
           subtexto={metricas.pendientesRevision > 0 ? "Requieren verificación" : "Todo verificado"}
         />
       </section>
-      <PanelGrafico
-        titulo="Evolución de registros"
-        descripcion="Arrastra las manijas inferiores para acercar o ampliar el rango visible. Usa el scroll horizontal para revisar más fechas."
-      >
-        <GraficoLineaRegistros datos={metricas.evolucionRegistros} />
-      </PanelGrafico>
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="xl:col-span-8">
+          <PanelGrafico
+            titulo="Evolución de registros"
+            descripcion="Visualiza el comportamiento diario de los cierres registrados en el sistema."
+          >
+            <GraficoLineaRegistros
+              datos={metricas.evolucionRegistros}
+            />
+          </PanelGrafico>
+        </div>
+
+        <div className="xl:col-span-4">
+          <TarjetaMetaMensual
+            meta={metricas.metaMensual}
+          />
+        </div>
+      </section>
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <PanelGrafico titulo="Top 10 Colocación" descripcion="Ranking por cantidad de cierres registrados.">
