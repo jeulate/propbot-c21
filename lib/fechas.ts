@@ -1,6 +1,6 @@
 const ZONA_HORARIA_BOLIVIA = "America/La_Paz";
 
-export type PeriodoDashboard = "semana" | "mes" | "anio";
+export type PeriodoDashboard = "semana" | "mes" | "anio" | "rango";
 
 export function fechaHoraBoliviaISO(fecha = new Date()): string {
   const formatter = new Intl.DateTimeFormat("sv-SE", {
@@ -106,4 +106,62 @@ export function estaDentroDelRango(fechaISO: string | undefined, inicioISO: stri
   const fin = new Date(finISO).getTime();
 
   return fecha >= inicio && fecha < fin;
+}
+
+export function obtenerRangoPersonalizadoBolivia(
+  desde: string,
+  hasta: string
+): { inicio: string; fin: string; etiqueta: string } {
+  const fechaDesde = normalizarFecha(desde);
+  const fechaHasta = normalizarFecha(hasta);
+
+  if (!fechaDesde || !fechaHasta) {
+    return obtenerRangoPeriodoBolivia("mes");
+  }
+
+  const inicio = new Date(Date.UTC(fechaDesde.anio, fechaDesde.mes - 1, fechaDesde.dia, 4, 0, 0));
+  const fin = new Date(Date.UTC(fechaHasta.anio, fechaHasta.mes - 1, fechaHasta.dia + 1, 4, 0, 0));
+
+  if (inicio.getTime() >= fin.getTime()) {
+    return obtenerRangoPeriodoBolivia("mes");
+  }
+
+  return {
+    inicio: inicio.toISOString(),
+    fin: fin.toISOString(),
+    etiqueta: `${formatearFechaCortaBolivia(inicio)} - ${formatearFechaCortaBolivia(
+      new Date(fin.getTime() - 1)
+    )}`,
+  };
+}
+
+export function esFechaISOValida(fecha: string | undefined): boolean {
+  if (!fecha) return false;
+  return /^\d{4}-\d{2}-\d{2}$/.test(fecha) && !!normalizarFecha(fecha);
+}
+
+function normalizarFecha(fecha: string): { anio: number; mes: number; dia: number } | null {
+  const match = fecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+
+  const anio = Number(match[1]);
+  const mes = Number(match[2]);
+  const dia = Number(match[3]);
+
+  const prueba = new Date(Date.UTC(anio, mes - 1, dia));
+  const esValida =
+    prueba.getUTCFullYear() === anio &&
+    prueba.getUTCMonth() === mes - 1 &&
+    prueba.getUTCDate() === dia;
+
+  return esValida ? { anio, mes, dia } : null;
+}
+
+function formatearFechaCortaBolivia(fecha: Date): string {
+  return new Intl.DateTimeFormat("es-BO", {
+    timeZone: ZONA_HORARIA_BOLIVIA,
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(fecha);
 }

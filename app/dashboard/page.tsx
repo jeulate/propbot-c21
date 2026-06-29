@@ -5,6 +5,7 @@ import { GraficoRanking } from "@/components/grafico-cierres-asesor";
 import { GraficoLineaRegistros } from "@/components/grafico-linea-registros";
 import type { PeriodoDashboard } from "@/lib/fechas";
 import { formatearFechaHoraBolivia } from "@/lib/fechas";
+import { SelectorRangoFechas } from "@/components/selector-rango-fechas";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
@@ -15,17 +16,20 @@ function formatoBs(valor: number): string {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: { periodo?: string };
+  searchParams?: { periodo?: string; desde?: string; hasta?: string };
 }) {
-  const periodo: PeriodoDashboard =
+   const periodo: PeriodoDashboard =
     searchParams?.periodo === "semana" ||
     searchParams?.periodo === "mes" ||
-    searchParams?.periodo === "anio"
+    searchParams?.periodo === "anio" ||
+    searchParams?.periodo === "rango"
       ? searchParams.periodo
       : "mes";
 
-  const metricas = await obtenerMetricas(periodo);
-
+  const metricas = await obtenerMetricas(periodo, {
+    desde: searchParams?.desde,
+    hasta: searchParams?.hasta,
+  });
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -41,7 +45,10 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      <SelectorPeriodo periodoActual={periodo} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <SelectorPeriodo periodoActual={periodo} />
+        <SelectorRangoFechas />
+      </div>
     </header>
 
       <section className="shadow-panel rounded-xl border border-gold-200 bg-white dark:border-carbon-700 dark:bg-carbon-800">

@@ -5,7 +5,7 @@ import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 import { calcularComisionCierre } from "@/lib/comisiones";
 import { fechaHoraBoliviaISO } from "@/lib/fechas";
-import { estaDentroDelRango, obtenerRangoPeriodoBolivia, type PeriodoDashboard,} from "@/lib/fechas";
+import { estaDentroDelRango, obtenerRangoPeriodoBolivia, obtenerRangoPersonalizadoBolivia, type PeriodoDashboard,} from "@/lib/fechas";
 import { obtenerMetaMensual } from "@/lib/repositories/metas-mensuales";
 
 /**
@@ -121,14 +121,25 @@ export async function listarTodosLosCierres(): Promise<Cierre[]> {
 }
 
 /** Métricas agregadas para el dashboard. */
-export async function obtenerMetricas(periodo: PeriodoDashboard = "mes") {
+export async function obtenerMetricas(
+  periodo: PeriodoDashboard = "mes",
+  opciones?: {
+    desde?: string;
+    hasta?: string;
+  }
+) {
   const todosLosCierres = await listarTodosLosCierres();
-  const rango = obtenerRangoPeriodoBolivia(periodo);
+  const rango =
+  periodo === "rango" && opciones?.desde && opciones?.hasta
+    ? obtenerRangoPersonalizadoBolivia(opciones.desde, opciones.hasta)
+    : obtenerRangoPeriodoBolivia(periodo === "rango" ? "mes" : periodo);
 
   const cierres = todosLosCierres.filter((c) => estaDentroDelRango(c.creadoEn, rango.inicio, rango.fin));
 
   const fechaAnterior = new Date(new Date(rango.inicio).getTime() - 1);
-  const rangoAnterior = obtenerRangoPeriodoBolivia(periodo, fechaAnterior);
+  const rangoAnterior = periodo === "rango"
+    ? obtenerRangoPeriodoBolivia("mes", fechaAnterior)
+    : obtenerRangoPeriodoBolivia(periodo, fechaAnterior);
 
   const cierresPeriodoAnterior = todosLosCierres.filter((c) =>
      estaDentroDelRango(c.creadoEn, rangoAnterior.inicio, rangoAnterior.fin)
