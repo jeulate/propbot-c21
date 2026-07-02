@@ -5,6 +5,7 @@ import { obtenerSesionActual } from "@/lib/auth";
 import { actualizarEstadoCierre, obtenerCierre } from "@/lib/repositories/cierres";
 import { PERMISOS, type Cierre } from "@/types/domain";
 import { formatearFechaHoraBolivia } from "@/lib/fechas";
+import { ComprobantePagoPreview } from "@/components/comprobante-pago-preview";
 
 function formatoBs(valor?: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", {
@@ -138,19 +139,12 @@ export default async function DetalleCierrePage({
               </p>
 
               {cierre.comprobantePagoFileId ? (
-                <div className="mt-3">
-                  <p className="break-all font-mono text-xs text-carbon-500 dark:text-gold-100/50">
-                    {cierre.comprobantePagoFileId}
+                  <ComprobantePagoPreview fileId={cierre.comprobantePagoFileId} />
+                ) : (
+                  <p className="mt-2 text-sm text-signal-danger">
+                    No se registró comprobante.
                   </p>
-                  <p className="mt-2 text-xs text-carbon-500 dark:text-gold-100/40">
-                    Siguiente paso: conectar este file_id con una API interna para visualizar la imagen.
-                  </p>
-                </div>
-              ) : (
-                <p className="mt-2 text-sm text-signal-danger">
-                  No se registró comprobante.
-                </p>
-              )}
+                )}
             </div>
 
             {puedeVerificar && (
