@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Cierre } from "@/types/domain";
 import { Check, X, Download } from "lucide-react";
+import Link from "next/link";
 
 function formatoBs(valor: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
@@ -22,9 +23,15 @@ const ETIQUETAS_ESTADO: Record<string, string> = {
 export function TablaCierres({
   cierresIniciales,
   puedeVerificar,
+  paginaActual,
+  perPage,
+  total,
 }: {
   cierresIniciales: Cierre[];
   puedeVerificar: boolean;
+  paginaActual: number;
+  perPage: number;
+  total: number;
 }) {
   const [cierres, setCierres] = useState(cierresIniciales);
   const [exportando, setExportando] = useState(false);
@@ -59,7 +66,22 @@ export function TablaCierres({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 text-sm text-carbon-600 dark:text-gold-100/60">
+          <span>Mostrar</span>
+          <select
+            value={perPage}
+            onChange={(e) => {
+              window.location.href = `/dashboard/cierres?page=1&perPage=${e.target.value}`;
+            }}
+            className="focus-ring rounded-md border border-gold-200 bg-white px-2.5 py-1.5 text-sm text-carbon-800 dark:border-carbon-700 dark:bg-carbon-900 dark:text-gold-50"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+          <span>por página</span>
+        </div>
         <button
           onClick={exportar}
           disabled={exportando}
@@ -189,6 +211,67 @@ export function TablaCierres({
             )}
           </tbody>
         </table>
+      </div>
+      <PaginacionCierres
+        paginaActual={paginaActual}
+        perPage={perPage}
+        total={total}
+      />
+    </div>
+    
+  );
+}
+
+function PaginacionCierres({
+  paginaActual,
+  perPage,
+  total,
+}: {
+  paginaActual: number;
+  perPage: number;
+  total: number;
+}) {
+  const totalPaginas = Math.max(1, Math.ceil(total / perPage));
+  const desde = total === 0 ? 0 : (paginaActual - 1) * perPage + 1;
+  const hasta = Math.min(paginaActual * perPage, total);
+
+  const paginaAnterior = Math.max(1, paginaActual - 1);
+  const paginaSiguiente = Math.min(totalPaginas, paginaActual + 1);
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-gold-200 bg-white px-4 py-3 text-sm dark:border-carbon-700 dark:bg-carbon-800 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-carbon-600 dark:text-gold-100/60">
+        Mostrando <span className="font-medium">{desde}</span> a{" "}
+        <span className="font-medium">{hasta}</span> de{" "}
+        <span className="font-medium">{total}</span> cierres
+      </p>
+
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/dashboard/cierres?page=${paginaAnterior}&perPage=${perPage}`}
+          className={`focus-ring rounded-md border px-3 py-1.5 ${
+            paginaActual <= 1
+              ? "pointer-events-none border-gold-100 text-carbon-300 dark:border-carbon-700 dark:text-gold-100/20"
+              : "border-gold-200 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700 dark:text-gold-100 dark:hover:bg-carbon-700"
+          }`}
+        >
+          Anterior
+        </Link>
+
+        <span className="rounded-md bg-gold-100 px-3 py-1.5 font-medium text-carbon-900 dark:bg-carbon-900 dark:text-gold-50">
+          {paginaActual} / {totalPaginas}
+        </span>
+
+        <Link
+          href={`/dashboard/cierres?page=${paginaSiguiente}&perPage=${perPage}`}
+          className={`focus-ring rounded-md border px-3 py-1.5 ${
+            paginaActual >= totalPaginas
+              ? "pointer-events-none border-gold-100 text-carbon-300 dark:border-carbon-700 dark:text-gold-100/20"
+              : "border-gold-200 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700 dark:text-gold-100 dark:hover:bg-carbon-700"
+          }`}
+        >
+          Siguiente
+        </Link>
       </div>
     </div>
   );
