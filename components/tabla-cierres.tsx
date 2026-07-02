@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Cierre } from "@/types/domain";
 import { Check, X, Download } from "lucide-react";
 import Link from "next/link";
@@ -34,6 +34,9 @@ export function TablaCierres({
   total: number;
 }) {
   const [cierres, setCierres] = useState(cierresIniciales);
+  useEffect(() => {
+    setCierres(cierresIniciales);
+  }, [cierresIniciales]);
   const [exportando, setExportando] = useState(false);
 
   async function cambiarEstado(id: string, estado: Cierre["estado"]) {
