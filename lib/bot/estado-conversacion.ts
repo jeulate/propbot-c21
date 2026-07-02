@@ -33,6 +33,7 @@ export type PasoFormulario =
   | "NOMBRE_CLIENTE"
   | "TEL_CLIENTE"
   | "EXCLUSIVA"
+  | "COMPROBANTE_PAGO"
   | "CONFIRMACION";
 
 export const ORDEN_PASOS: PasoFormulario[] = [
@@ -58,6 +59,7 @@ export const ORDEN_PASOS: PasoFormulario[] = [
   "NOMBRE_CLIENTE",
   "TEL_CLIENTE",
   "EXCLUSIVA",
+  "COMPROBANTE_PAGO",
   "CONFIRMACION",
 ];
 
@@ -94,6 +96,11 @@ export interface DatosParciales {
   nombreCliente?: string;
   telCliente?: string;
   exclusiva?: boolean;
+  comprobantePagoFileId?: string;
+  comprobantePagoFileUniqueId?: string;
+  comprobantePagoTipo?: "photo" | "document";
+  comprobantePagoNombreArchivo?: string;
+  comprobantePagoMimeType?: string;
 }
 
 export interface EstadoConversacion {
@@ -152,5 +159,6 @@ export const PREGUNTAS: Record<PasoFormulario, string> = {
   NOMBRE_CLIENTE: "👤 ¿*Nombre del cliente* (comprador/inquilino)?",
   TEL_CLIENTE: "📞 ¿*Teléfono del cliente*?",
   EXCLUSIVA: "🔒 ¿Esta operación fue en *exclusiva*?",
+  COMPROBANTE_PAGO: "📸 Adjunta una *imagen del comprobante de pago de la comisión*.\n\nDebe verse claramente el monto pagado.",
   CONFIRMACION: "✅ Revisa el resumen del cierre antes de guardar:",
 };

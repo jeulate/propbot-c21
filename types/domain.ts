@@ -21,6 +21,8 @@ export interface Cierre {
   asesorColocadorOficina?: string;
   asesorColocadorTelefono?: string;
   direccionInmueble: string;
+  tituloPropiedad?: string;
+  urlPropiedad?: string;
   tipoTransaccion: TipoTransaccion;
   montoTransaccion: number;
   montoComision: number; // monto total que debe pagar el asesor (oficina nacional + oficina local)
@@ -36,6 +38,11 @@ export interface Cierre {
   nombreCliente: string;
   telCliente: string;
   exclusiva: boolean; // EXCLUSIVA (SI/NO)
+  comprobantePagoFileId?: string;
+  comprobantePagoFileUniqueId?: string;
+  comprobantePagoTipo?: "photo" | "document";
+  comprobantePagoNombreArchivo?: string;
+  comprobantePagoMimeType?: string;
 
   // Metadatos de auditoría (no estaban en el Excel, necesarios para el sistema)
   registradoPorTelegramId: string;

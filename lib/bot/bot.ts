@@ -18,7 +18,7 @@ import {
   validarMonto,
   validarTelefono,
   validarTexto,
-  validarTipoCambio,
+
 } from "@/lib/bot/validadores";
 import { buscarPropiedadPorId } from "@/lib/services/propiedades-c21";
 
@@ -45,8 +45,6 @@ const tecladoConfirmacionComision = new InlineKeyboard()
   .text("✅ Confirmar comisión", "comision:SI")
   .row()
   .text("❌ No es correcta", "comision:NO");
-
-const tecladoExclusiva = new InlineKeyboard().text("✅ Sí", "exclusiva:SI").text("❌ No", "exclusiva:NO");
 
 const tecladoConfirmacionFinal = new InlineKeyboard()
   .text("💾 Guardar cierre", "confirmar:SI")
@@ -352,35 +350,11 @@ bot.callbackQuery(/^comision:(SI|NO)$/, async (ctx) => {
     return;
   }
 
-  estado.paso = "TIPO_CAMBIO";
+  estado.datos.tipoCambio = 1;
+  estado.paso = "NOMBRE_PROPIETARIO";
   await guardarEstado(telegramId, estado);
   await ctx.editMessageText("✅ Comisión confirmada.");
-  await ctx.reply(PREGUNTAS.TIPO_CAMBIO, { parse_mode: "Markdown" });
-});
-
-bot.callbackQuery(/^exclusiva:(SI|NO)$/, async (ctx) => {
-  const telegramId = String(ctx.from?.id ?? "");
-  const estado = await obtenerEstado(telegramId);
-
-  if (!estado) {
-    await ctx.answerCallbackQuery();
-    await ctx.reply("⚠️ La sesión expiró. Usa /nuevo para empezar nuevamente.");
-    return;
-  }
-
-  if (estado.paso !== "EXCLUSIVA") {
-    await ctx.answerCallbackQuery();
-    return;
-  }
-
-  const esSi = ctx.match![1] === "SI";
-  estado.datos.exclusiva = esSi;
-  estado.paso = "CONFIRMACION";
-
-  await guardarEstado(telegramId, estado);
-  await ctx.answerCallbackQuery();
-  await ctx.editMessageText(`🔒 Exclusiva: *${esSi ? "Sí" : "No"}*`, { parse_mode: "Markdown" });
-  await enviarResumenConfirmacion(ctx, estado);
+  await ctx.reply(PREGUNTAS.NOMBRE_PROPIETARIO, { parse_mode: "Markdown" });
 });
 
 bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
@@ -415,25 +389,55 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
       direccionInmueble: d.direccionInmueble!,
       tipoTransaccion: d.tipoTransaccion!,
       montoTransaccion: d.montoTransaccion!,
-      tipoCambio: d.tipoCambio!,
+      tipoCambio: d.tipoCambio ?? 1,
       nombrePropietario: d.nombrePropietario!,
       telPropietario: d.telPropietario!,
       nombreCliente: d.nombreCliente!,
       telCliente: d.telCliente!,
-      exclusiva: d.exclusiva!,
+      exclusiva: d.exclusiva ?? true,
+      comprobantePagoFileId: d.comprobantePagoFileId,
+      comprobantePagoFileUniqueId: d.comprobantePagoFileUniqueId,
+      comprobantePagoTipo: d.comprobantePagoTipo,
+      comprobantePagoNombreArchivo: d.comprobantePagoNombreArchivo,
+      comprobantePagoMimeType: d.comprobantePagoMimeType,
       registradoPorTelegramId: telegramId,
       registradoPorNombre: d.asesorRegistranteNombre ?? ctx.from?.first_name ?? "Desconocido",
     });
 
     await limpiarEstado(telegramId);
     await ctx.editMessageText(
-      `✅ ¡Cierre *${d.id}* guardado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\nUsa /nuevo para registrar otro cierre.`,
+      `✅ ¡Cierre *${d.id}* registrado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\n📸 El comprobante fue recibido y el cierre quedó pendiente de revisión administrativa.\n\nUsa /nuevo para registrar otro cierre.`,      
       { parse_mode: "Markdown" }
     );
   } catch (error) {
     const mensaje = error instanceof Error ? error.message : "Error desconocido";
     await ctx.editMessageText(`⚠️ No se pudo guardar el cierre: ${mensaje}`);
   }
+});
+
+bot.on("message:photo", async (ctx) => {
+  if (!(await requiereAutorizacion(ctx))) return;
+
+  const telegramId = String(ctx.from?.id ?? "");
+  const estado = await obtenerEstado(telegramId);
+
+  if (!estado || estado.paso !== "COMPROBANTE_PAGO") {
+    await ctx.reply("Usa /nuevo para iniciar el registro de un cierre.");
+    return;
+  }
+
+  const fotos = ctx.message.photo;
+  const fotoMayorResolucion = fotos[fotos.length - 1];
+
+  estado.datos.comprobantePagoFileId = fotoMayorResolucion.file_id;
+  estado.datos.comprobantePagoFileUniqueId = fotoMayorResolucion.file_unique_id;
+  estado.datos.comprobantePagoTipo = "photo";
+  estado.paso = "CONFIRMACION";
+
+  await guardarEstado(telegramId, estado);
+
+  await ctx.reply("✅ Comprobante recibido correctamente.");
+  await enviarResumenConfirmacion(ctx, estado);
 });
 
 bot.on("message:text", async (ctx) => {
@@ -467,6 +471,7 @@ bot.on("message:text", async (ctx) => {
 
       estado.datos.tituloPropiedad = propiedad.titulo;
       estado.datos.urlPropiedad = propiedad.url;
+      estado.datos.exclusiva = true;
 
       await ctx.reply(
         `✅ Propiedad encontrada:\n\n${propiedad.titulo}\n${propiedad.url}`
@@ -568,13 +573,7 @@ bot.on("message:text", async (ctx) => {
       estado.paso = "CONFIRMAR_COMISION";
       break;
     }
-    case "TIPO_CAMBIO": {
-      const r = validarTipoCambio(texto);
-      if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
-      estado.datos.tipoCambio = r.value;
-      estado.paso = "NOMBRE_PROPIETARIO";
-      break;
-    }
+
     case "NOMBRE_PROPIETARIO": {
       const r = validarTexto(texto, "El nombre del propietario");
       if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
@@ -600,7 +599,7 @@ bot.on("message:text", async (ctx) => {
       const r = validarTelefono(texto);
       if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
       estado.datos.telCliente = r.value;
-      estado.paso = "EXCLUSIVA";
+      estado.paso = "COMPROBANTE_PAGO";
       break;
     }
     default: {
@@ -664,10 +663,11 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
     await ctx.reply(detalle, { parse_mode: "Markdown", reply_markup: tecladoConfirmacionComision });
     return;
   }
-  if (estado.paso === "EXCLUSIVA") {
-    await ctx.reply(PREGUNTAS.EXCLUSIVA, { parse_mode: "Markdown", reply_markup: tecladoExclusiva });
+  if (estado.paso === "COMPROBANTE_PAGO") {
+    await ctx.reply(PREGUNTAS.COMPROBANTE_PAGO, { parse_mode: "Markdown" });
     return;
   }
+
   if (estado.paso === "CONFIRMACION") {
     await enviarResumenConfirmacion(ctx, estado);
     return;
@@ -732,10 +732,10 @@ async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacio
     `👤 Pago real asesor (${escaparHtml(d.porcentajeCategoriaAplicado ?? 0)}%): ${escaparHtml(
       formatoBs(d.montoPagoRealAsesor ?? 0)
     )}`,
-    `💱 T.C.: ${escaparHtml(d.tipoCambio)}`,
     `👤 Propietario: ${escaparHtml(d.nombrePropietario)} (${escaparHtml(d.telPropietario)})`,
     `👤 Cliente: ${escaparHtml(d.nombreCliente)} (${escaparHtml(d.telCliente)})`,
     `🔒 Exclusiva: ${d.exclusiva ? "Sí" : "No"}`,
+    d.comprobantePagoFileId ? "📸 Comprobante de pago: Recibido" : "📸 Comprobante de pago: Pendiente",
     "",
     "Si los datos son correctos, presiona <b>Guardar cierre</b>. Si detectas un error, presiona <b>Cancelar y empezar de nuevo</b>.",
   ]

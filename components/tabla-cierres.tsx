@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Cierre } from "@/types/domain";
-import { Check, X, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import Link from "next/link";
 
 function formatoBs(valor: number): string {
@@ -38,17 +38,6 @@ export function TablaCierres({
     setCierres(cierresIniciales);
   }, [cierresIniciales]);
   const [exportando, setExportando] = useState(false);
-
-  async function cambiarEstado(id: string, estado: Cierre["estado"]) {
-    const res = await fetch(`/api/cierres/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado }),
-    });
-    if (res.ok) {
-      setCierres((prev) => prev.map((c) => (c.id === id ? { ...c, estado } : c)));
-    }
-  }
 
   async function exportar() {
     setExportando(true);
@@ -122,18 +111,12 @@ export function TablaCierres({
 
             {puedeVerificar && (
               <div className="mt-3 flex gap-2">
-                <button
-                  onClick={() => cambiarEstado(c.id, "VERIFICADO")}
-                  className="focus-ring flex items-center gap-1 rounded-md border border-signal-ok/40 px-2.5 py-1.5 text-xs text-signal-ok hover:bg-signal-ok/10"
+                <Link
+                  href={`/dashboard/cierres/${c.id}`}
+                  className="focus-ring mt-3 inline-flex rounded-md border border-gold-300 px-3 py-1.5 text-xs font-medium text-gold-700 hover:bg-gold-50 dark:border-carbon-600 dark:text-gold-300 dark:hover:bg-carbon-700"
                 >
-                  <Check size={14} /> Verificar
-                </button>
-                <button
-                  onClick={() => cambiarEstado(c.id, "RECHAZADO")}
-                  className="focus-ring flex items-center gap-1 rounded-md border border-signal-danger/40 px-2.5 py-1.5 text-xs text-signal-danger hover:bg-signal-danger/10"
-                >
-                  <X size={14} /> Rechazar
-                </button>
+                  Ver detalle
+                </Link>
               </div>
             )}
           </article>
@@ -186,20 +169,12 @@ export function TablaCierres({
                 {puedeVerificar && (
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
-                      <button
-                        onClick={() => cambiarEstado(c.id, "VERIFICADO")}
-                        title="Marcar como verificado"
-                        className="focus-ring rounded-md p-1.5 text-signal-ok hover:bg-signal-ok/10"
+                      <Link
+                        href={`/dashboard/cierres/${c.id}`}
+                        className="focus-ring rounded-md border border-gold-300 px-3 py-1.5 text-xs font-medium text-gold-700 hover:bg-gold-50 dark:border-carbon-600 dark:text-gold-300 dark:hover:bg-carbon-700"
                       >
-                        <Check size={16} />
-                      </button>
-                      <button
-                        onClick={() => cambiarEstado(c.id, "RECHAZADO")}
-                        title="Rechazar"
-                        className="focus-ring rounded-md p-1.5 text-signal-danger hover:bg-signal-danger/10"
-                      >
-                        <X size={16} />
-                      </button>
+                        Ver
+                      </Link>
                     </div>
                   </td>
                 )}
