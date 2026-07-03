@@ -22,6 +22,7 @@ export const KEYS = {
   categoriaAsesor: (id: string) => `${NAMESPACE}:categoria-asesor:${id}`,
   categoriasAsesorIndex: `${NAMESPACE}:categorias-asesor:index`, // set de ids
   configuracionComisiones: `${NAMESPACE}:configuracion:comisiones`,
+  cuentaComision: `${NAMESPACE}:configuracion:cuenta-comision`,
   metasMensuales: `${NAMESPACE}:metas:index`,
   usuarioAdmin: (username: string) => `${NAMESPACE}:admin:${username}`,
   usuariosAdminIndex: `${NAMESPACE}:admins:index`, // set de usernames

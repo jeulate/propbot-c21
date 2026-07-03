@@ -113,6 +113,14 @@ export interface MetaMensual {
   actualizadoEn: string; // ISO datetime UTC
 }
 
+export interface CuentaComision {
+  banco: string;
+  cuenta: string;
+  titular: string;
+  nitCi: string;
+  actualizadoEn: string;
+}
+
 export type MetaMensualInput = Omit<
   MetaMensual,
   "id" | "creadoEn" | "actualizadoEn"

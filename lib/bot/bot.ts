@@ -70,6 +70,15 @@ const MENSAJE_AYUDA =
   "- *Teléfonos:* incluye código de país si aplica (ejemplo: +59170000000).\n\n" +
   "Al final verás un resumen completo para confirmar antes de enviar al panel.";
 
+const DATOS_CUENTA_COMISION = [
+  "🏦 *Datos para el depósito:*",
+  "",
+  "Banco: BNB",
+  "Cuenta: 0000000000",
+  "Titular: Century 21 Rita Quiroga",
+  "NIT/CI: 0000000",
+].join("\n");
+
 function formatoBs(valor: number) {
   return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
 }
@@ -663,8 +672,21 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
     await ctx.reply(detalle, { parse_mode: "Markdown", reply_markup: tecladoConfirmacionComision });
     return;
   }
+  
   if (estado.paso === "COMPROBANTE_PAGO") {
-    await ctx.reply(PREGUNTAS.COMPROBANTE_PAGO, { parse_mode: "Markdown" });
+    const montoDeposito = formatoBs(estado.datos.montoComision ?? 0);
+
+    const mensaje = [
+      "📸 Adjunta una *imagen del comprobante de pago de la comisión*.",
+      "",
+      `💰 *Monto a depositar:* ${montoDeposito}`,
+      "",
+      DATOS_CUENTA_COMISION,
+      "",
+      "Debe verse claramente el monto pagado en el comprobante.",
+    ].join("\n");
+
+    await ctx.reply(mensaje, { parse_mode: "Markdown" });
     return;
   }
 

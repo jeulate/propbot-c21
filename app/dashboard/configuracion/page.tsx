@@ -6,6 +6,8 @@ import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion
 import { GestionCategorias } from "@/components/gestion-categorias";
 import { GestionMetas } from "@/components/gestion-metas";
 import { listarMetasMensuales } from "@/lib/repositories/metas-mensuales";
+import { GestionCuentaComision } from "@/components/gestion-cuenta-comision";
+import { obtenerCuentaComision } from "@/lib/repositories/cuenta-comision";
 
 export default async function ConfiguracionPage() {
   const sesion = await obtenerSesionActual();
@@ -14,6 +16,7 @@ export default async function ConfiguracionPage() {
   const categorias = await listarCategoriasAsesor();
   const configuracion = await obtenerConfiguracionComisiones();
   const metas = await listarMetasMensuales();
+  const cuentaComision = await obtenerCuentaComision();
 
   return (
     <div className="flex flex-col gap-6">
@@ -30,6 +33,7 @@ export default async function ConfiguracionPage() {
       />
       
       <GestionMetas metasIniciales={metas} />
+      <GestionCuentaComision cuentaInicial={cuentaComision} />
     </div>
   );
 }

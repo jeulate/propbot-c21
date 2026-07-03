@@ -152,7 +152,7 @@ export const PREGUNTAS: Record<PasoFormulario, string> = {
   TIPO_TRANSACCION: "🏷️ ¿Qué *tipo de transacción* es?",
   MONTO_TRANSACCION: "💰 ¿Cuál es el *monto de la transacción*? (solo número, en Bs)",
   CONFIRMAR_COMISION:
-    "🧮 Te mostraré la comisión calculada automáticamente. Confirma si el monto es correcto para continuar.",
+    "📋 Te mostraré la comisión calculada automáticamente. Confirma si el monto es correcto para continuar.",
   TIPO_CAMBIO: "💱 ¿Cuál es el *tipo de cambio (T.C.)* usado?",
   NOMBRE_PROPIETARIO: "👤 ¿*Nombre del propietario*?",
   TEL_PROPIETARIO: "📞 ¿*Teléfono del propietario*?",

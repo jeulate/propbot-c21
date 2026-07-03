@@ -41,7 +41,7 @@ export function AccionesValidacionCierre({
             </h3>
 
             <p className="mt-2 text-sm text-carbon-600 dark:text-gold-100/60">
-              Este cierre será marcado como rechazado y no contará en el dashboard, KPIs ni rankings.
+              ¿Está segura de que desea rechazar este cierre?
             </p>
 
             <div className="mt-6 flex gap-3">
