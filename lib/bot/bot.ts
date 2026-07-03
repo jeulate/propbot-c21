@@ -673,7 +673,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
 
     const datosCuenta = cuentaComision
       ? [
-          "🏛️ *Datos para el depósito:*",
+          "Datos para el depósito:",
           "",
           `Banco: ${cuentaComision.banco}`,
           `Cuenta: ${cuentaComision.cuenta}`,
