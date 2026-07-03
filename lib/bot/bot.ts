@@ -649,12 +649,12 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
       "📝 *Comisión calculada automáticamente*",
       "",
       `- Base de comisión aplicada: ${d.porcentajeBaseComision}%`,
-      `- Oficina Nacional (${d.porcentajeOficinaNacionalAplicado}%): ${formatoBs(
+      /*`- Oficina Nacional (${d.porcentajeOficinaNacionalAplicado}%): ${formatoBs(
         d.montoPagoOficinaNacional ?? 0
       )}`,
       `- Oficina local (${d.porcentajeOficinaLocalAplicado}%): ${formatoBs(
         d.montoPagoOficinaLocal ?? 0
-      )}`,
+      )}`,*/
       `- Categoría asesor (${d.porcentajeCategoriaAplicado}%): ${formatoBs(d.montoPagoRealAsesor ?? 0)}`,
       "",
       `💵 *Comisión a registrar = Oficina Nacional + Oficina local = ${formatoBs(d.montoComision ?? 0)}*`,
