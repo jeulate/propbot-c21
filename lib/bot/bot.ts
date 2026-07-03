@@ -646,7 +646,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
   if (estado.paso === "CONFIRMAR_COMISION") {
     const d = estado.datos;
     const detalle = [
-      "📝 *Comisión calculada automáticamente*",
+      " *Comisión calculada automáticamente*",
       "",
       `- Base de comisión aplicada: ${d.porcentajeBaseComision}%`,
       /*`- Oficina Nacional (${d.porcentajeOficinaNacionalAplicado}%): ${formatoBs(
@@ -657,7 +657,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
       )}`,*/
       `- Categoría asesor (${d.porcentajeCategoriaAplicado}%): ${formatoBs(d.montoPagoRealAsesor ?? 0)}`,
       "",
-      `💵 *Comisión a registrar = Oficina Nacional + Oficina local = ${formatoBs(d.montoComision ?? 0)}*`,
+      `💵 *Comisión a registrar = ${formatoBs(d.montoComision ?? 0)}*`,
       "",
       "¿Confirmas que este monto es correcto?",
     ].join("\n");

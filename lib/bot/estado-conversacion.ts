@@ -134,7 +134,7 @@ export function siguientePaso(actual: PasoFormulario): PasoFormulario {
 
 /** Textos de las preguntas, en el mismo orden que las columnas del Excel original. */
 export const PREGUNTAS: Record<PasoFormulario, string> = {
-  ID: "📋 Vamos a registrar un nuevo cierre.\n\n¿Cuál es el *ID / N° de expediente* de este cierre?",
+  ID: "📋 Vamos a registrar un nuevo cierre.\n\n¿Cuál es el *ID / N° de inmueble* de este cierre?",
   FECHA_CIERRE: "📅 ¿Cuál es la *fecha de cierre*? (formato DD/MM/AAAA)",
   CAPTADOR_ES_REGISTRANTE:
     "🧑‍💼 En este cierre, ¿el *asesor captador* eres tú (quien está registrando la operación)?",
