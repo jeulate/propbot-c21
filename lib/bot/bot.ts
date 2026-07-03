@@ -21,6 +21,7 @@ import {
 
 } from "@/lib/bot/validadores";
 import { buscarPropiedadPorId } from "@/lib/services/propiedades-c21";
+import { obtenerCuentaComision } from "../repositories/cuenta-comision";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 if (!BOT_TOKEN) {
@@ -70,14 +71,6 @@ const MENSAJE_AYUDA =
   "- *Teléfonos:* incluye código de país si aplica (ejemplo: +59170000000).\n\n" +
   "Al final verás un resumen completo para confirmar antes de enviar al panel.";
 
-const DATOS_CUENTA_COMISION = [
-  "🏦 *Datos para el depósito:*",
-  "",
-  "Banco: BNB",
-  "Cuenta: 0000000000",
-  "Titular: Century 21 Rita Quiroga",
-  "NIT/CI: 0000000",
-].join("\n");
 
 function formatoBs(valor: number) {
   return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
@@ -676,12 +669,29 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
   if (estado.paso === "COMPROBANTE_PAGO") {
     const montoDeposito = formatoBs(estado.datos.montoComision ?? 0);
 
+    const cuentaComision = await obtenerCuentaComision();
+
+    const datosCuenta = cuentaComision
+      ? [
+          "🏦 *Datos para el depósito:*",
+          "",
+          `Banco: ${cuentaComision.banco}`,
+          `Cuenta: ${cuentaComision.cuenta}`,
+          `Titular: ${cuentaComision.titular}`,
+          `NIT/CI: ${cuentaComision.nitCi}`,
+        ].join("\n")
+      : [
+          "⚠️ *Datos de cuenta no configurados.*",
+          "",
+          "Comunícate con administración antes de realizar el depósito.",
+        ].join("\n");
+
     const mensaje = [
       "📸 Adjunta una *imagen del comprobante de pago de la comisión*.",
       "",
-      `💰 *Monto a depositar:* ${montoDeposito}`,
+      `💰 *Monto a depositar:* ${formatoBs(estado.datos.montoComision ?? 0)}`,
       "",
-      DATOS_CUENTA_COMISION,
+      datosCuenta,
       "",
       "Debe verse claramente el monto pagado en el comprobante.",
     ].join("\n");
