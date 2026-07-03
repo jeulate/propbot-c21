@@ -6,6 +6,7 @@ import { actualizarEstadoCierre, obtenerCierre } from "@/lib/repositories/cierre
 import { PERMISOS, type Cierre } from "@/types/domain";
 import { formatearFechaHoraBolivia } from "@/lib/fechas";
 import { ComprobantePagoPreview } from "@/components/comprobante-pago-preview";
+import { AccionesValidacionCierre } from "@/components/acciones-validacion-cierre";
 
 function formatoBs(valor?: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", {
@@ -148,27 +149,11 @@ export default async function DetalleCierrePage({
             </div>
 
             {puedeVerificar && (
-              <div className="mt-6 grid grid-cols-1 gap-3">
-                <form action={verificarCierre}>
-                  <input type="hidden" name="id" value={cierre.id} />
-                  <button
-                    type="submit"
-                    className="focus-ring w-full rounded-md bg-signal-ok px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-                  >
-                    Verificar cierre
-                  </button>
-                </form>
-
-                <form action={rechazarCierre}>
-                  <input type="hidden" name="id" value={cierre.id} />
-                  <button
-                    type="submit"
-                    className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-                  >
-                    Rechazar cierre
-                  </button>
-                </form>
-              </div>
+              <AccionesValidacionCierre
+                cierreId={cierre.id}
+                verificarAction={verificarCierre}
+                rechazarAction={rechazarCierre}
+              />
             )}
           </Panel>
         </aside>

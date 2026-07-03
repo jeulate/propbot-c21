@@ -134,15 +134,21 @@ export async function obtenerMetricas(
     ? obtenerRangoPersonalizadoBolivia(opciones.desde, opciones.hasta)
     : obtenerRangoPeriodoBolivia(periodo === "rango" ? "mes" : periodo);
 
-  const cierres = todosLosCierres.filter((c) => estaDentroDelRango(c.creadoEn, rango.inicio, rango.fin));
+  const cierres = todosLosCierres.filter(
+      (c) =>
+        c.estado === "VERIFICADO" &&
+        estaDentroDelRango(c.creadoEn, rango.inicio, rango.fin)
+    );
 
   const fechaAnterior = new Date(new Date(rango.inicio).getTime() - 1);
   const rangoAnterior = periodo === "rango"
     ? obtenerRangoPeriodoBolivia("mes", fechaAnterior)
     : obtenerRangoPeriodoBolivia(periodo, fechaAnterior);
 
-  const cierresPeriodoAnterior = todosLosCierres.filter((c) =>
-     estaDentroDelRango(c.creadoEn, rangoAnterior.inicio, rangoAnterior.fin)
+  const cierresPeriodoAnterior = todosLosCierres.filter(
+    (c) =>
+      c.estado === "VERIFICADO" &&
+      estaDentroDelRango(c.creadoEn, rangoAnterior.inicio, rangoAnterior.fin)
   );
 
   const totalCierres = cierres.length;

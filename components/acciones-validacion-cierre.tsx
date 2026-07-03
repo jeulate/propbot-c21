@@ -1,0 +1,71 @@
+"use client";
+
+import { useState } from "react";
+
+export function AccionesValidacionCierre({
+  cierreId,
+  verificarAction,
+  rechazarAction,
+}: {
+  cierreId: string;
+  verificarAction: (formData: FormData) => void;
+  rechazarAction: (formData: FormData) => void;
+}) {
+  const [confirmarRechazo, setConfirmarRechazo] = useState(false);
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-3">
+      <form action={verificarAction}>
+        <input type="hidden" name="id" value={cierreId} />
+        <button
+          type="submit"
+          className="focus-ring w-full rounded-md bg-signal-ok px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+        >
+          Verificar cierre
+        </button>
+      </form>
+
+      <button
+        type="button"
+        onClick={() => setConfirmarRechazo(true)}
+        className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+      >
+        Rechazar cierre
+      </button>
+
+      {confirmarRechazo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-xl border border-gold-200 bg-white p-6 shadow-xl dark:border-carbon-700 dark:bg-carbon-800">
+            <h3 className="font-display text-lg font-semibold text-carbon-900 dark:text-gold-50">
+              Confirmar rechazo
+            </h3>
+
+            <p className="mt-2 text-sm text-carbon-600 dark:text-gold-100/60">
+              Este cierre será marcado como rechazado y no contará en el dashboard, KPIs ni rankings.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmarRechazo(false)}
+                className="focus-ring flex-1 rounded-md border border-gold-300 px-4 py-2.5 text-sm font-medium text-carbon-800 hover:bg-gold-50 dark:border-carbon-600 dark:text-gold-50 dark:hover:bg-carbon-700"
+              >
+                Cancelar
+              </button>
+
+              <form action={rechazarAction} className="flex-1">
+                <input type="hidden" name="id" value={cierreId} />
+                <button
+                  type="submit"
+                  className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                >
+                  Sí, rechazar
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
