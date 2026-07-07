@@ -124,6 +124,22 @@ export interface CuentaComision {
   actualizadoEn: string;
 }
 
+export interface CaptacionMensual {
+  id: string; // captacion:<anio>:<mes>:<asesorTelegramId>
+  anio: number;
+  mes: number; // 1-12
+  asesorTelegramId: string;
+  asesorNombre: string;
+  cantidad: number;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export type CaptacionMensualInput = Omit<
+  CaptacionMensual,
+  "id" | "creadoEn" | "actualizadoEn"
+>;
+
 export type MetaMensualInput = Omit<
   MetaMensual,
   "id" | "creadoEn" | "actualizadoEn"

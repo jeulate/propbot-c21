@@ -7,6 +7,7 @@ import { calcularComisionCierre } from "@/lib/comisiones";
 import { fechaHoraBoliviaISO } from "@/lib/fechas";
 import { estaDentroDelRango, obtenerRangoPeriodoBolivia, obtenerRangoPersonalizadoBolivia, type PeriodoDashboard,} from "@/lib/fechas";
 import { obtenerMetaMensual } from "@/lib/repositories/metas-mensuales";
+import { listarCaptacionesPorPeriodo } from "@/lib/repositories/captaciones-mensuales";
 
 /**
  * Repositorio de Cierres.
@@ -237,6 +238,8 @@ const mesMeta = Number(
   }).format(fechaBaseBolivia)
 );
 
+const captacionesPeriodo = await listarCaptacionesPorPeriodo(anioMeta, mesMeta);
+
 const metaActual = await obtenerMetaMensual(anioMeta, mesMeta);
 
 const fechaMetaAnterior = new Date(Date.UTC(anioMeta, mesMeta - 2, 1, 4, 0, 0));
@@ -436,10 +439,13 @@ const mesMetaAnterior = Number(
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 10);
 
-  const rankingCaptadores = Object.entries(porCaptador)
-    .map(([id, datos]) => ({ id, ...datos }))
-    .sort((a, b) => b.cierres - a.cierres)
-    .slice(0, 10);
+  const rankingCaptadores = captacionesPeriodo.map((item) => ({
+    id: item.asesorTelegramId,
+    nombre: item.asesorNombre,
+    cierres: item.cantidad,
+  }))
+  .sort((a, b) => b.cierres - a.cierres)
+  .slice(0, 10);
 
   const rankingColocadores = Object.entries(porColocador)
     .map(([id, datos]) => ({ id, ...datos }))
