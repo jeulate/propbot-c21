@@ -64,7 +64,8 @@ export const ORDEN_PASOS: PasoFormulario[] = [
 ];
 
 export interface DatosParciales {
-  id?: string;
+  idInmueble?: string;
+  rolRegistro?: "CAPTADOR" | "COLOCADOR" | "AMBOS";
   urlPropiedad?: string;
   tituloPropiedad?: string;
   fechaCierre?: string;

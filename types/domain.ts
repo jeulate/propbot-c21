@@ -10,7 +10,9 @@ export type TipoTransaccion = "VENTA" | "ALQUILER" | "ANTICRÉTICO";
 
 export interface Cierre {
   /** Clave Redis: cierre:<id> */
-  id: string; // ID de expediente ingresado manualmente por el asesor
+  id: string; // ID interno único del cierre
+  idInmueble: string; // ID público del inmueble en c21.com.bo
+  rolRegistro: "CAPTADOR" | "COLOCADOR" | "AMBOS";
   fechaCierre: string; // ISO date (yyyy-MM-dd)
   asesorCaptadorId: string; // referencia a Asesor.id (quien capta la propiedad)
   asesorCaptadorNombre: string;
@@ -55,6 +57,7 @@ export interface Cierre {
 
 export type CierreInput = Omit<
   Cierre,
+  | "id"
   | "creadoEn"
   | "creadoEnBolivia"
   | "actualizadoEn"

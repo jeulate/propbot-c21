@@ -17,12 +17,36 @@ import { obtenerMetaMensual } from "@/lib/repositories/metas-mensuales";
  *    (evitar SCAN/KEYS en Redis en producción, que es costoso a escala).
  */
 
+function generarIdCierre(): string {
+  return `cierre_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function rolesSeCruzan(
+  existente: Cierre["rolRegistro"],
+  nuevo: Cierre["rolRegistro"]
+): boolean {
+  if (existente === "AMBOS" || nuevo === "AMBOS") return true;
+  return existente === nuevo;
+}
+
 export async function crearCierre(
   input: CierreInput & { registradoPorTelegramId: string; registradoPorNombre: string }
 ): Promise<Cierre> {
-  const yaExiste = await kv.get(KEYS.cierre(input.id));
-  if (yaExiste) {
-    throw new Error(`Ya existe un cierre registrado con el ID "${input.id}".`);
+  const cierresExistentes = await listarTodosLosCierres();
+  const duplicadoActivo = cierresExistentes.find((c) => {
+  const idInmuebleExistente = c.idInmueble ?? c.id;
+
+    return (
+      idInmuebleExistente === input.idInmueble &&
+      c.estado !== "RECHAZADO" &&
+      rolesSeCruzan(c.rolRegistro ?? "AMBOS", input.rolRegistro)
+    );
+  });
+
+  if (duplicadoActivo) {
+    throw new Error(
+      `Ya existe un cierre activo para el inmueble ${input.idInmueble} con ese rol de registro.`
+    );
   }
 
   const asesor = await obtenerAsesor(input.registradoPorTelegramId);
@@ -50,7 +74,9 @@ export async function crearCierre(
   const ahora = new Date();
   const ahoraISO = ahora.toISOString();
   const ahoraBolivia = fechaHoraBoliviaISO(ahora);
+  const idInterno = generarIdCierre();
   const cierre: Cierre = {
+    id: idInterno,
     ...input,
     montoComision: comision.montoComisionTotal,
     porcentajeOficinaNacionalAplicado: comision.porcentajeOficinaNacionalAplicado,

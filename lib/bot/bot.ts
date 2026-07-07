@@ -76,6 +76,14 @@ function formatoBs(valor: number) {
   return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
 }
 
+function resolverRolRegistro(d: EstadoConversacion["datos"]): "CAPTADOR" | "COLOCADOR" | "AMBOS" {
+  if (d.captadorEsRegistrante && d.colocadorEsRegistrante) return "AMBOS";
+  if (d.captadorEsRegistrante) return "CAPTADOR";
+  if (d.colocadorEsRegistrante) return "COLOCADOR";
+
+  throw new Error("El asesor registrante debe ser captador, colocador o ambos.");
+}
+
 async function requiereAutorizacion(ctx: Context): Promise<boolean> {
   const telegramId = String(ctx.from?.id ?? "");
   const autorizado = await esAsesorAutorizado(telegramId);
@@ -377,8 +385,9 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
 
   try {
     const d = estado.datos;
-    await crearCierre({
-      id: d.id!,
+    const cierreCreado = await crearCierre({
+      idInmueble: d.idInmueble!,
+      rolRegistro: resolverRolRegistro(d),
       fechaCierre: d.fechaCierre!,
       asesorCaptadorId: d.asesorCaptadorId!,
       asesorCaptadorNombre: d.asesorCaptadorNombre!,
@@ -408,7 +417,7 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
 
     await limpiarEstado(telegramId);
     await ctx.editMessageText(
-      `✅ ¡Cierre *${d.id}* registrado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\n📸 El comprobante fue recibido y el cierre quedó pendiente de revisión administrativa.\n\nUsa /nuevo para registrar otro cierre.`,      
+      `✅ ¡Cierre *${cierreCreado.id}* registrado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\n📸 El comprobante fue recibido y el cierre quedó pendiente de revisión administrativa.\n\nUsa /nuevo para registrar otro cierre.`,      
       { parse_mode: "Markdown" }
     );
   } catch (error) {
@@ -469,7 +478,7 @@ bot.on("message:text", async (ctx) => {
         );
       }
 
-      estado.datos.id = r.value;
+      estado.datos.idInmueble = r.value;
 
       estado.datos.tituloPropiedad = propiedad.titulo;
       estado.datos.urlPropiedad = propiedad.url;
@@ -738,7 +747,7 @@ async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacio
   const resumen = [
     "✅ <b>Revisa el resumen del cierre:</b>",
     "",
-    `🆔 ID: ${escaparHtml(d.id)}`,
+    `🆔 ID inmueble: ${escaparHtml(d.idInmueble)}`,
     d.tituloPropiedad ? `🏠 Propiedad: ${escaparHtml(d.tituloPropiedad)}` : "",
     d.urlPropiedad ? `🔗 URL: ${escaparHtml(d.urlPropiedad)}` : "",
     `📅 Fecha cierre: ${escaparHtml(d.fechaCierre)}`,

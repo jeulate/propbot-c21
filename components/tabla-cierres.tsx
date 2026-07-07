@@ -86,10 +86,10 @@ export function TablaCierres({
 
       <div className="space-y-3 md:hidden">
         {cierres.map((c) => (
-          <article key={c.id} className="shadow-panel rounded-xl border border-gold-200 bg-white p-4 dark:border-carbon-700 dark:bg-carbon-800">
+          <article key={c.idInmueble ?? c.id} className="shadow-panel rounded-xl border border-gold-200 bg-white p-4 dark:border-carbon-700 dark:bg-carbon-800">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-mono text-xs text-carbon-500 dark:text-gold-100/70">{c.id}</p>
+                <p className="font-mono text-xs text-carbon-500 dark:text-gold-100/70">{c.idInmueble ?? c.id}</p>
                 <p className="mt-1 text-sm font-medium text-carbon-900 dark:text-gold-50">{c.direccionInmueble}</p>
               </div>
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ESTILOS_ESTADO[c.estado]}`}>
@@ -112,7 +112,7 @@ export function TablaCierres({
             {puedeVerificar && (
               <div className="mt-3 flex gap-2">
                 <Link
-                  href={`/dashboard/cierres/${c.id}`}
+                  href={`/dashboard/cierres/${c.idInmueble ?? c.id}`}
                   className="focus-ring mt-3 inline-flex rounded-md border border-gold-300 px-3 py-1.5 text-xs font-medium text-gold-700 hover:bg-gold-50 dark:border-carbon-600 dark:text-gold-300 dark:hover:bg-carbon-700"
                 >
                   Ver detalle
@@ -132,7 +132,7 @@ export function TablaCierres({
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gold-200 text-xs uppercase tracking-wide text-carbon-500 dark:border-carbon-700 dark:text-gold-100/40">
-              <th className="px-4 py-3">ID</th>
+              <th className="px-4 py-3">ID inmueble</th>
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Captador</th>
               <th className="px-4 py-3">Colocador</th>
@@ -149,8 +149,8 @@ export function TablaCierres({
           </thead>
           <tbody>
             {cierres.map((c) => (
-              <tr key={c.id} className="border-b border-gold-100 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700/50 dark:text-gold-100/80 dark:hover:bg-carbon-800/50">
-                <td className="px-4 py-3 font-mono text-xs">{c.id}</td>
+              <tr key={c.idInmueble ?? c.id} className="border-b border-gold-100 text-carbon-700 hover:bg-gold-50 dark:border-carbon-700/50 dark:text-gold-100/80 dark:hover:bg-carbon-800/50">
+                <td className="px-4 py-3 font-mono text-xs">{c.idInmueble ?? c.id}</td>
                 <td className="px-4 py-3">{c.fechaCierre}</td>
                 <td className="px-4 py-3">{c.asesorCaptadorNombre}</td>
                 <td className="px-4 py-3">{c.asesorColocadorNombre}</td>

@@ -60,7 +60,7 @@ export default async function DetalleCierrePage({
         </Link>
 
         <h1 className="mt-4 font-display text-2xl font-semibold text-carbon-900 dark:text-gold-50">
-          Detalle del cierre {cierre.id}
+          Detalle del cierre del inmueble {cierre.idInmueble ?? cierre.id}
         </h1>
 
         <p className="mt-1 text-sm text-carbon-600 dark:text-gold-100/50">
@@ -72,7 +72,9 @@ export default async function DetalleCierrePage({
         <div className="xl:col-span-8">
           <Panel titulo="Información del cierre">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Dato label="ID inmueble" valor={cierre.id} />
+              <Dato label="ID interno" valor={cierre.id} />
+              <Dato label="ID inmueble" valor={cierre.idInmueble ?? cierre.id} />
+              <Dato label="Rol registro" valor={cierre.rolRegistro ?? "AMBOS"} />
               <Dato label="Estado" valor={<EstadoBadge estado={cierre.estado} />} />
               <Dato label="Fecha cierre declarada" valor={cierre.fechaCierre} />
               <Dato label="Fecha registro sistema" valor={formatearFechaHoraBolivia(cierre.creadoEn)} />
