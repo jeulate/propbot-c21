@@ -10,9 +10,11 @@ interface DatoGrafico {
 export function GraficoRanking({
   datos,
   etiqueta = "Valor",
+  tooltipLabel,
 }: {
   datos: DatoGrafico[];
   etiqueta?: string;
+  tooltipLabel?: string;
 }) {
   if (datos.length === 0) {
     return (
@@ -29,7 +31,7 @@ export function GraficoRanking({
         <XAxis dataKey="nombre" stroke="#A19276" tick={{ fontSize: 11, fill: "#A19276" }} />
         <YAxis stroke="#A19276" tick={{ fontSize: 11, fill: "#A19276" }} allowDecimals={false} />
         <Tooltip
-          formatter={(value) => [value, etiqueta]}
+          formatter={(value) => [value, tooltipLabel ?? etiqueta]}
           contentStyle={{
             background: "#252526",
             border: "1px solid #BEAF87",

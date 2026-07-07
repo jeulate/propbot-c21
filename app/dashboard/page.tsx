@@ -145,9 +145,10 @@ export default async function DashboardPage({
           />
         </PanelGrafico>
 
-        <PanelGrafico titulo="Top Captadores" descripcion="Asesores con más cierres como captadores.">
+        <PanelGrafico titulo="Top Captaciones" descripcion="Ranking mensual de captaciones por asesor.">
           <GraficoRanking
-            etiqueta="Cierres"
+            etiqueta="Captaciones"
+            tooltipLabel="Captaciones"
             datos={metricas.topCaptadores.map((a) => ({
               nombre: a.nombre,
               valor: a.cierres,
