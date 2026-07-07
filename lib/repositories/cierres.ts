@@ -17,8 +17,11 @@ import { obtenerMetaMensual } from "@/lib/repositories/metas-mensuales";
  *    (evitar SCAN/KEYS en Redis en producción, que es costoso a escala).
  */
 
-function generarIdCierre(): string {
-  return `cierre_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+async function generarIdCierre(): Promise<string> {
+  const secuenciaKey = `${KEYS.cierresIndex}:secuencia`;
+  const numero = await kv.incr(secuenciaKey);
+
+  return `C21RQ_${String(numero).padStart(5, "0")}`;
 }
 
 function rolesSeCruzan(
@@ -74,7 +77,7 @@ export async function crearCierre(
   const ahora = new Date();
   const ahoraISO = ahora.toISOString();
   const ahoraBolivia = fechaHoraBoliviaISO(ahora);
-  const idInterno = generarIdCierre();
+  const idInterno = await generarIdCierre();
   const cierre: Cierre = {
     id: idInterno,
     ...input,

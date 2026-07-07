@@ -2,6 +2,16 @@ export interface PropiedadC21 {
   id: string;
   url: string;
   titulo: string;
+  direccion?: string;
+}
+
+function extraerMetaContent(html: string, nombre: string): string | undefined {
+  const regex = new RegExp(
+    `<meta\\s+[^>]*name=["']${nombre}["'][^>]*content=["']([^"']+)["'][^>]*>`,
+    "i"
+  );
+
+  return regex.exec(html)?.[1]?.trim();
 }
 
 export async function buscarPropiedadPorId(id: string): Promise<PropiedadC21 | null> {
@@ -22,6 +32,7 @@ export async function buscarPropiedadPorId(id: string): Promise<PropiedadC21 | n
 
     const contieneId = html.includes(`ID: ${id}`);
     const tituloMatch = html.match(/<title>(.*?)<\/title>/i);
+    const direccion = extraerMetaContent(html, "direccion");
 
     if (!contieneId) return null;
 
@@ -29,6 +40,7 @@ export async function buscarPropiedadPorId(id: string): Promise<PropiedadC21 | n
       id,
       url: res.url,
       titulo: tituloMatch?.[1]?.trim() ?? `Propiedad ID ${id}`,
+      direccion,
     };
   } catch {
     return null;

@@ -21,7 +21,7 @@ import {
 
 } from "@/lib/bot/validadores";
 import { buscarPropiedadPorId } from "@/lib/services/propiedades-c21";
-import { obtenerCuentaComision } from "../repositories/cuenta-comision";
+import { obtenerCuentaComision } from "@/lib/repositories/cuenta-comision";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 if (!BOT_TOKEN) {
@@ -190,11 +190,11 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
     if (esSi) {
       estado.datos.asesorColocadorId = telegramId;
       estado.datos.asesorColocadorNombre = estado.datos.asesorRegistranteNombre;
-      estado.paso = "DIRECCION_INMUEBLE";
+      estado.paso = estado.datos.direccionInmueble ? "TIPO_TRANSACCION" : "DIRECCION_INMUEBLE";
       await guardarEstado(telegramId, estado);
       await ctx.answerCallbackQuery();
       await ctx.editMessageText("🤝 Colocador: *Tú mismo*", { parse_mode: "Markdown" });
-      await ctx.reply(PREGUNTAS.DIRECCION_INMUEBLE, { parse_mode: "Markdown" });
+      await avanzarConSiguientePregunta(ctx, estado);
       return;
     }
 
@@ -331,7 +331,7 @@ bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
   estado.datos.asesorColocadorId = asesor.telegramId;
   estado.datos.asesorColocadorNombre = asesor.nombre;
   estado.datos.asesorColocadorOficina = "Century 21 Rita Quiroga";
-  estado.paso = "DIRECCION_INMUEBLE";
+  estado.paso = estado.datos.direccionInmueble ? "TIPO_TRANSACCION" : "DIRECCION_INMUEBLE";
 
   await guardarEstado(telegramId, estado);
   await ctx.answerCallbackQuery();
@@ -339,7 +339,7 @@ bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
     parse_mode: "Markdown",
   });
 
-  await ctx.reply(PREGUNTAS.DIRECCION_INMUEBLE, { parse_mode: "Markdown" });
+  await avanzarConSiguientePregunta(ctx, estado);
 });
 
 bot.callbackQuery(/^comision:(SI|NO)$/, async (ctx) => {
@@ -483,6 +483,9 @@ bot.on("message:text", async (ctx) => {
       estado.datos.tituloPropiedad = propiedad.titulo;
       estado.datos.urlPropiedad = propiedad.url;
       estado.datos.exclusiva = true;
+      if (propiedad.direccion) {
+        estado.datos.direccionInmueble = propiedad.direccion;
+      }
 
       await ctx.reply(
         `✅ Propiedad encontrada:\n\n${propiedad.titulo}\n${propiedad.url}`
@@ -539,7 +542,7 @@ bot.on("message:text", async (ctx) => {
       const r = validarTelefono(texto);
       if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
       estado.datos.asesorColocadorTelefono = r.value;
-      estado.paso = "DIRECCION_INMUEBLE";
+      estado.paso = estado.datos.direccionInmueble ? "TIPO_TRANSACCION" : "DIRECCION_INMUEBLE";
       break;
     }
     case "DIRECCION_INMUEBLE": {
@@ -682,7 +685,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
 
     const datosCuenta = cuentaComision
       ? [
-          "Datos para el depósito:",
+          "🏦 *Datos para el depósito:*",
           "",
           `Banco: ${cuentaComision.banco}`,
           `Cuenta: ${cuentaComision.cuenta}`,
@@ -698,7 +701,7 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
     const mensaje = [
       "📸 Adjunta una *imagen del comprobante de pago de la comisión*.",
       "",
-      `💰 *Monto a depositar:* ${formatoBs(estado.datos.montoComision ?? 0)}`,
+      `💰 *Monto a depositar:* ${montoDeposito}`,
       "",
       datosCuenta,
       "",
