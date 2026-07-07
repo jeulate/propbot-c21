@@ -284,7 +284,11 @@ const mesMetaAnterior = Number(
   const porCaptador: Record<string, { nombre: string; cierres: number }> = {};
   const porColocador: Record<string, { nombre: string; cierres: number }> = {};
 
-  const pendientes = cierres.filter((c) => c.estado === "PENDIENTE_REVISION").length;
+  const pendientes = todosLosCierres.filter(
+    (c) =>
+      c.estado === "PENDIENTE_REVISION" &&
+      estaDentroDelRango(c.creadoEn, rango.inicio, rango.fin)
+  ).length;
 
   function sumarRanking(
     ranking: Record<string, { nombre: string; cierres: number }>,

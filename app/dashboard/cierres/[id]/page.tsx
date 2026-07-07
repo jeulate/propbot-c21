@@ -7,6 +7,10 @@ import { PERMISOS, type Cierre } from "@/types/domain";
 import { formatearFechaHoraBolivia } from "@/lib/fechas";
 import { ComprobantePagoPreview } from "@/components/comprobante-pago-preview";
 import { AccionesValidacionCierre } from "@/components/acciones-validacion-cierre";
+import {
+  notificarCierreRechazado,
+  notificarCierreVerificado,
+} from "@/lib/bot/notificaciones";
 
 function formatoBs(valor?: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", {
@@ -19,6 +23,8 @@ async function verificarCierre(formData: FormData) {
 
   const id = String(formData.get("id") ?? "");
   await actualizarEstadoCierre(id, "VERIFICADO");
+  const cierre = await obtenerCierre(id);
+  if (cierre) await notificarCierreVerificado(cierre);
 
   revalidatePath(`/dashboard/cierres/${id}`);
   revalidatePath("/dashboard/cierres");
@@ -30,6 +36,8 @@ async function rechazarCierre(formData: FormData) {
 
   const id = String(formData.get("id") ?? "");
   await actualizarEstadoCierre(id, "RECHAZADO");
+  const cierre = await obtenerCierre(id);
+  if (cierre) await notificarCierreRechazado(cierre);
 
   revalidatePath(`/dashboard/cierres/${id}`);
   revalidatePath("/dashboard/cierres");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function AccionesValidacionCierre({
   cierreId,
@@ -8,10 +9,20 @@ export function AccionesValidacionCierre({
   rechazarAction,
 }: {
   cierreId: string;
-  verificarAction: (formData: FormData) => void;
-  rechazarAction: (formData: FormData) => void;
+  verificarAction: (formData: FormData) => Promise<void>;
+  rechazarAction: (formData: FormData) => Promise<void>;
 }) {
+  const router = useRouter();
   const [confirmarRechazo, setConfirmarRechazo] = useState(false);
+  const [procesando, setProcesando] = useState(false);
+
+  async function confirmarRechazoAction(formData: FormData) {
+    setProcesando(true);
+    await rechazarAction(formData);
+    setConfirmarRechazo(false);
+    router.refresh();
+    setProcesando(false);
+  }
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-3">
@@ -19,7 +30,8 @@ export function AccionesValidacionCierre({
         <input type="hidden" name="id" value={cierreId} />
         <button
           type="submit"
-          className="focus-ring w-full rounded-md bg-signal-ok px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+          disabled={procesando}
+          className="focus-ring w-full rounded-md bg-signal-ok px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
         >
           Verificar cierre
         </button>
@@ -28,7 +40,8 @@ export function AccionesValidacionCierre({
       <button
         type="button"
         onClick={() => setConfirmarRechazo(true)}
-        className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+        disabled={procesando}
+        className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
       >
         Rechazar cierre
       </button>
@@ -41,25 +54,27 @@ export function AccionesValidacionCierre({
             </h3>
 
             <p className="mt-2 text-sm text-carbon-600 dark:text-gold-100/60">
-              ¿Está segura de que desea rechazar este cierre?
+              Este cierre será marcado como rechazado y no contará en el dashboard, KPIs ni rankings.
             </p>
 
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmarRechazo(false)}
-                className="focus-ring flex-1 rounded-md border border-gold-300 px-4 py-2.5 text-sm font-medium text-carbon-800 hover:bg-gold-50 dark:border-carbon-600 dark:text-gold-50 dark:hover:bg-carbon-700"
+                disabled={procesando}
+                className="focus-ring flex-1 rounded-md border border-gold-300 px-4 py-2.5 text-sm font-medium text-carbon-800 hover:bg-gold-50 disabled:opacity-60 dark:border-carbon-600 dark:text-gold-50 dark:hover:bg-carbon-700"
               >
                 Cancelar
               </button>
 
-              <form action={rechazarAction} className="flex-1">
+              <form action={confirmarRechazoAction} className="flex-1">
                 <input type="hidden" name="id" value={cierreId} />
                 <button
                   type="submit"
-                  className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                  disabled={procesando}
+                  className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
                 >
-                  Sí, rechazar
+                  {procesando ? "Rechazando..." : "Sí, rechazar"}
                 </button>
               </form>
             </div>
