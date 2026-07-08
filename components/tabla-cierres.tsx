@@ -112,7 +112,7 @@ export function TablaCierres({
             {puedeVerificar && (
               <div className="mt-3 flex gap-2">
                 <Link
-                  href={`/dashboard/cierres/${c.idInmueble ?? c.id}`}
+                  href={`/dashboard/cierres/${c.id}`}  //version movil
                   className="focus-ring mt-3 inline-flex rounded-md border border-gold-300 px-3 py-1.5 text-xs font-medium text-gold-700 hover:bg-gold-50 dark:border-carbon-600 dark:text-gold-300 dark:hover:bg-carbon-700"
                 >
                   Ver detalle
