@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export function ComprobantePagoPreview({ fileId }: { fileId: string }) {
   const [abierto, setAbierto] = useState(false);
-  const src = `/api/telegram/file/${encodeURIComponent(fileId)}`;
+  const src = `/api/telegram/file?fileId=${encodeURIComponent(fileId)}`;
 
   return (
     <>
