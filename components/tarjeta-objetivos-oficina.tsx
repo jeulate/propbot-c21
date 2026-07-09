@@ -1,4 +1,10 @@
-import Image from "next/image";
+"use client";
+
+import dynamic from "next/dynamic";
+import type { ApexOptions } from "apexcharts";
+import { useEffect, useState } from "react";
+
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 function formatoBs(valor: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", {
@@ -6,13 +12,15 @@ function formatoBs(valor: number): string {
   }).format(valor)}`;
 }
 
-function ObjetivoLinea({
+function ObjetivoRadial({
   titulo,
   imagen,
   objetivo,
+  esDark,
 }: {
   titulo: string;
   imagen: string;
+  esDark: boolean;
   objetivo: {
     objetivo: number;
     actual: number;
@@ -23,8 +31,40 @@ function ObjetivoLinea({
 }) {
   const porcentaje = Math.min(Math.max(objetivo.porcentaje, 0), 100);
 
+  const options: ApexOptions = {
+    chart: {
+      type: "radialBar",
+      fontFamily: "Outfit, sans-serif",
+      sparkline: { enabled: true },
+    },
+    colors: ["#BEAF87"],
+    plotOptions: {
+      radialBar: {
+        startAngle: -90,
+        endAngle: 90,
+        hollow: { size: "72%" },
+        track: {
+          background: esDark ? "#43454b" : "#E6E7E8",
+          strokeWidth: "100%",
+        },
+        dataLabels: {
+          name: { show: false },
+          value: {
+            offsetY: -2,
+            fontSize: "22px",
+            fontWeight: 700,
+            color: esDark ? "#F9F8F3" : "#252526",
+            formatter: (value) => `${Number(value).toFixed(1)}%`,
+          },
+        },
+      },
+    },
+    stroke: { lineCap: "round" },
+    labels: ["Avance"],
+  };
+
   return (
-    <div className="relative overflow-hidden rounded-xl bg-gold-50 p-5 dark:bg-carbon-900">
+    <div className="relative overflow-hidden rounded-xl bg-gold-50 p-4 dark:bg-carbon-900">
       <div className="relative z-10 flex items-start justify-between gap-3">
         <div>
           <p className="font-display text-sm font-semibold text-carbon-900 dark:text-gold-50">
@@ -34,55 +74,29 @@ function ObjetivoLinea({
             Meta: {formatoBs(objetivo.objetivo)}
           </p>
         </div>
-
-        <span
-          className={
-            objetivo.alcanzado
-              ? "rounded-full bg-signal-ok/15 px-2.5 py-1 text-xs font-semibold text-signal-ok"
-              : "rounded-full bg-gold-200 px-2.5 py-1 text-xs font-semibold text-carbon-800 dark:bg-carbon-700 dark:text-gold-100"
-          }
-        >
-          {porcentaje.toFixed(1)}%
-        </span>
       </div>
 
-      <div className="relative z-10 mt-6 h-2.5 overflow-hidden rounded-full bg-white dark:bg-carbon-800">
-        <div
-          className="h-full rounded-full bg-gold-500 transition-all"
-          style={{ width: `${porcentaje}%` }}
+      <div className="relative z-10 mt-3">
+        <Chart options={options} series={[porcentaje]} type="radialBar" height={170} />
+
+        <img
+          src={imagen}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[52%] h-20 w-20 -translate-x-1/2 -translate-y-1/2 object-contain opacity-90 drop-shadow-xl"
         />
       </div>
 
-      <div className="relative z-10 mt-4 flex items-center justify-between text-xs">
-        <span className="text-carbon-600 dark:text-gold-100/55">
-          {objetivo.alcanzado ? "Meta alcanzada" : "Faltante"}
-        </span>
-
-        <span className="font-semibold text-carbon-900 dark:text-gold-50">
-          {objetivo.alcanzado ? "Completado" : formatoBs(objetivo.faltante)}
-        </span>
+      <div className="relative z-10 mt-2 rounded-lg bg-white/80 px-3 py-2 dark:bg-carbon-800/80">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-carbon-600 dark:text-gold-100/60">
+            {objetivo.alcanzado ? "Meta alcanzada" : "Faltante"}
+          </span>
+          <span className="font-semibold text-carbon-900 dark:text-gold-50">
+            {objetivo.alcanzado ? "Completado" : formatoBs(objetivo.faltante)}
+          </span>
+        </div>
       </div>
-      <Image
-        src={imagen}
-        alt={titulo}
-        width={170}
-        height={170}
-        priority={false}
-        className="
-        pointer-events-none
-        absolute
-        -bottom-5
-        -right-6
-        h-36
-        w-36
-        object-contain
-        drop-shadow-2xl
-        select-none
-        opacity-80
-        dark:opacity-90
-        dark:brightness-95
-        "
-        />
     </div>
   );
 }
@@ -116,6 +130,24 @@ export function TarjetaObjetivosOficina({
     };
   };
 }) {
+  const [esDark, setEsDark] = useState(false);
+
+  useEffect(() => {
+    const actualizarTema = () => {
+      setEsDark(document.documentElement.classList.contains("dark"));
+    };
+
+    actualizarTema();
+
+    const observer = new MutationObserver(actualizarTema);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="shadow-panel rounded-xl border border-gold-200 bg-white p-6 dark:border-carbon-700 dark:bg-carbon-800">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
@@ -139,9 +171,26 @@ export function TarjetaObjetivosOficina({
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <ObjetivoLinea titulo="Centurion" imagen="/images/objetivos/centurion.png" objetivo={objetivos.centurion} />
-        <ObjetivoLinea titulo="Doble Centurion" imagen="/images/objetivos/doble-centurion.png" objetivo={objetivos.dobleCenturion} />
-        <ObjetivoLinea titulo="Grand Centurion" imagen="/images/objetivos/grand-centurion.png" objetivo={objetivos.grandCenturion} />
+        <ObjetivoRadial
+          titulo="Centurion"
+          imagen="/images/objetivos/centurion.png"
+          objetivo={objetivos.centurion}
+          esDark={esDark}
+        />
+
+        <ObjetivoRadial
+          titulo="Doble Centurion"
+          imagen="/images/objetivos/doble-centurion.png"
+          objetivo={objetivos.dobleCenturion}
+          esDark={esDark}
+        />
+
+        <ObjetivoRadial
+          titulo="Grand Centurion"
+          imagen="/images/objetivos/grand-centurion.png"
+          objetivo={objetivos.grandCenturion}
+          esDark={esDark}
+        />
       </div>
     </section>
   );
