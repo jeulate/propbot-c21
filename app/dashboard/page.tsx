@@ -87,44 +87,41 @@ export default async function DashboardPage({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2">
-        <TarjetaMetrica
-          etiqueta="Pago real a asesores"
-          valor={formatoBs(metricas.totalPagosReales)}
-        />
-        <TarjetaMetrica
-          etiqueta="Pendientes de revisión"
-          valor={String(metricas.pendientesRevision)}
-          tono={metricas.pendientesRevision > 0 ? "warn" : "ok"}
-          subtexto={
-            metricas.pendientesRevision > 0
-              ? "Requieren verificación"
-              : "Todo verificado"
-          }
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TarjetaMetrica
+            etiqueta="Pago real a asesores"
+            valor={formatoBs(metricas.totalPagosReales)}
+          />
+
+          <TarjetaMetrica
+            etiqueta="Pendientes de revisión"
+            valor={String(metricas.pendientesRevision)}
+            tono={metricas.pendientesRevision > 0 ? "warn" : "ok"}
+            subtexto={
+              metricas.pendientesRevision > 0
+                ? "Requieren verificación"
+                : "Todo verificado"
+            }
+          />
+        </div>
+
+        <TarjetaObjetivosOficina
+          objetivos={metricas.objetivosAnualesOficina}
         />
       </section>
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-4">
-        <div className="xl:col-span-2">
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="xl:col-span-8">
           <PanelGrafico
             titulo="Evolución de registros"
             descripcion="Visualiza el comportamiento diario de los cierres registrados en el sistema."
           >
-            <GraficoLineaRegistros
-              datos={metricas.evolucionRegistros}
-            />
+            <GraficoLineaRegistros datos={metricas.evolucionRegistros} />
           </PanelGrafico>
         </div>
 
-        <div className="xl:col-span-1">
-          <TarjetaMetaMensual
-            meta={metricas.metaMensual}
-          />
-        </div>
-
-        <div className="xl:col-span-1">
-          <TarjetaObjetivosOficina
-            objetivos={metricas.objetivosAnualesOficina}
-          />
+        <div className="xl:col-span-4">
+          <TarjetaMetaMensual meta={metricas.metaMensual} />
         </div>
       </section>
 
