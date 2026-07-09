@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 function formatoBs(valor: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", {
     maximumFractionDigits: 2,
@@ -6,9 +8,11 @@ function formatoBs(valor: number): string {
 
 function ObjetivoLinea({
   titulo,
+  imagen,
   objetivo,
 }: {
   titulo: string;
+  imagen: string;
   objetivo: {
     objetivo: number;
     actual: number;
@@ -20,8 +24,8 @@ function ObjetivoLinea({
   const porcentaje = Math.min(Math.max(objetivo.porcentaje, 0), 100);
 
   return (
-    <div className="rounded-xl bg-gold-50 p-4 dark:bg-carbon-900">
-      <div className="flex items-start justify-between gap-3">
+    <div className="relative overflow-hidden rounded-xl bg-gold-50 p-5 dark:bg-carbon-900">
+      <div className="relative z-10 flex items-start justify-between gap-3">
         <div>
           <p className="font-display text-sm font-semibold text-carbon-900 dark:text-gold-50">
             {titulo}
@@ -42,14 +46,14 @@ function ObjetivoLinea({
         </span>
       </div>
 
-      <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white dark:bg-carbon-800">
+      <div className="relative z-10 mt-6 h-2.5 overflow-hidden rounded-full bg-white dark:bg-carbon-800">
         <div
           className="h-full rounded-full bg-gold-500 transition-all"
           style={{ width: `${porcentaje}%` }}
         />
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-xs">
+      <div className="relative z-10 mt-4 flex items-center justify-between text-xs">
         <span className="text-carbon-600 dark:text-gold-100/55">
           {objetivo.alcanzado ? "Meta alcanzada" : "Faltante"}
         </span>
@@ -58,6 +62,27 @@ function ObjetivoLinea({
           {objetivo.alcanzado ? "Completado" : formatoBs(objetivo.faltante)}
         </span>
       </div>
+      <Image
+        src={imagen}
+        alt={titulo}
+        width={170}
+        height={170}
+        priority={false}
+        className="
+        pointer-events-none
+        absolute
+        -bottom-5
+        -right-6
+        h-36
+        w-36
+        object-contain
+        drop-shadow-2xl
+        select-none
+        opacity-80
+        dark:opacity-90
+        dark:brightness-95
+        "
+        />
     </div>
   );
 }
@@ -114,9 +139,9 @@ export function TarjetaObjetivosOficina({
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <ObjetivoLinea titulo="Centurion" objetivo={objetivos.centurion} />
-        <ObjetivoLinea titulo="Doble Centurion" objetivo={objetivos.dobleCenturion} />
-        <ObjetivoLinea titulo="Grand Centurion" objetivo={objetivos.grandCenturion} />
+        <ObjetivoLinea titulo="Centurion" imagen="/images/objetivos/centurion.png" objetivo={objetivos.centurion} />
+        <ObjetivoLinea titulo="Doble Centurion" imagen="/images/objetivos/doble-centurion.png" objetivo={objetivos.dobleCenturion} />
+        <ObjetivoLinea titulo="Grand Centurion" imagen="/images/objetivos/grand-centurion.png" objetivo={objetivos.grandCenturion} />
       </div>
     </section>
   );
