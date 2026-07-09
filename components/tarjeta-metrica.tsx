@@ -88,7 +88,7 @@ export function TarjetaMetricaIcono({
   };
 
   return (
-    <div className="shadow-panel rounded-xl border border-gold-200 bg-white p-5 dark:border-carbon-700 dark:bg-carbon-800 md:p-6">
+    <div className="shadow-panel rounded-xl border border-gold-200 bg-white p-5 dark:border-carbon-700 dark:bg-carbon-800">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold-100 text-carbon-800 dark:bg-carbon-900 dark:text-gold-100">
         {icono}
       </div>

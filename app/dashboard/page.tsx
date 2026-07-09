@@ -88,7 +88,7 @@ export default async function DashboardPage({
       </section>
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 [&>div]:min-h-[180px] [&>div]:p-5">
           <TarjetaMetricaIcono
             etiqueta="Pago real a asesores"
             valor={formatoBs(metricas.totalPagosReales)}
