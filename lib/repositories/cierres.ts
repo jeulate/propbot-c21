@@ -8,7 +8,7 @@ import { fechaHoraBoliviaISO } from "@/lib/fechas";
 import { estaDentroDelRango, obtenerRangoPeriodoBolivia, obtenerRangoPersonalizadoBolivia, type PeriodoDashboard,} from "@/lib/fechas";
 import { obtenerMetaMensual } from "@/lib/repositories/metas-mensuales";
 import { listarCaptacionesPorPeriodo } from "@/lib/repositories/captaciones-mensuales";
-
+import { obtenerObjetivosOficina } from "@/lib/repositories/objetivos-oficina";
 /**
  * Repositorio de Cierres.
  * Patrón de almacenamiento:
@@ -237,6 +237,38 @@ const mesMeta = Number(
     month: "2-digit",
   }).format(fechaBaseBolivia)
 );
+
+const objetivosOficina = await obtenerObjetivosOficina();
+
+const rangoAnual = obtenerRangoPeriodoBolivia("anio", new Date(rango.inicio));
+
+const comisionAnualOficina = todosLosCierres
+  .filter(
+    (c) =>
+      c.estado === "VERIFICADO" &&
+      estaDentroDelRango(c.creadoEn, rangoAnual.inicio, rangoAnual.fin)
+  )
+  .reduce((acc, c) => acc + (c.montoComision || 0), 0);
+
+function calcularAvanceObjetivo(objetivo: number) {
+  const porcentaje = objetivo > 0 ? (comisionAnualOficina / objetivo) * 100 : 0;
+
+  return {
+    objetivo,
+    actual: comisionAnualOficina,
+    porcentaje: Math.min(porcentaje, 100),
+    faltante: Math.max(objetivo - comisionAnualOficina, 0),
+    alcanzado: comisionAnualOficina >= objetivo,
+  };
+}
+
+const objetivosAnualesOficina = {
+  anio: anioMeta,
+  comisionAnualOficina,
+  centurion: calcularAvanceObjetivo(objetivosOficina.centurion),
+  dobleCenturion: calcularAvanceObjetivo(objetivosOficina.dobleCenturion),
+  grandCenturion: calcularAvanceObjetivo(objetivosOficina.grandCenturion),
+};
 
 const captacionesPeriodo = await listarCaptacionesPorPeriodo(anioMeta, mesMeta);
 
@@ -472,7 +504,7 @@ const mesMetaAnterior = Number(
 
     // Mantiene compatibilidad con tu gráfico actual.
     porAsesor: rankingAsesores,
-
+    objetivosAnualesOficina,
     // Nuevos KPIs/rankings.
     topColocacion: rankingAsesores.slice(0, 10),
     topProducer: rankingProducer,

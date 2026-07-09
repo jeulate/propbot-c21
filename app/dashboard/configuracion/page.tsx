@@ -11,6 +11,8 @@ import { obtenerCuentaComision } from "@/lib/repositories/cuenta-comision";
 import { GestionCaptacionesMensuales } from "@/components/gestion-captaciones-mensuales";
 import { listarAsesores } from "@/lib/repositories/asesores";
 import { listarCaptacionesMensuales } from "@/lib/repositories/captaciones-mensuales";
+import { GestionObjetivosOficina } from "@/components/gestion-objetivos-oficina";
+import { obtenerObjetivosOficina } from "@/lib/repositories/objetivos-oficina";
 
 
 export default async function ConfiguracionPage() {
@@ -23,6 +25,7 @@ export default async function ConfiguracionPage() {
   const cuentaComision = await obtenerCuentaComision();
   const asesores = await listarAsesores();
   const captaciones = await listarCaptacionesMensuales();
+  const objetivosOficina = await obtenerObjetivosOficina();
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,6 +45,10 @@ export default async function ConfiguracionPage() {
         captacionesIniciales={captaciones}
       />
       <GestionMetas metasIniciales={metas} />
+      <GestionMetas metasIniciales={metas} />
+      <GestionObjetivosOficina objetivosIniciales={objetivosOficina} />
+
+      <GestionCuentaComision cuentaInicial={cuentaComision} />
       <GestionCuentaComision cuentaInicial={cuentaComision} />
     </div>
   );

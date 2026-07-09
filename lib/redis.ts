@@ -25,6 +25,7 @@ export const KEYS = {
   cuentaComision: `${NAMESPACE}:configuracion:cuenta-comision`,
   metasMensuales: `${NAMESPACE}:metas:index`,
   captacionesMensuales: `${NAMESPACE}:captaciones:index`,
+  objetivosOficina: `${NAMESPACE}:configuracion:objetivos-oficina`,
   usuarioAdmin: (username: string) => `${NAMESPACE}:admin:${username}`,
   usuariosAdminIndex: `${NAMESPACE}:admins:index`, // set de usernames
   sesionToken: (token: string) => `${NAMESPACE}:sesion:${token}`,

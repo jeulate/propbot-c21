@@ -1,5 +1,6 @@
 import { obtenerMetricas } from "@/lib/repositories/cierres";
 import { TarjetaMetaMensual } from "@/components/tarjeta-meta-mensual";
+import { TarjetaObjetivosOficina } from "@/components/tarjeta-objetivos-oficina";
 import { TarjetaMetrica, TarjetaMetricaSaas } from "@/components/tarjeta-metrica";
 import { GraficoRanking } from "@/components/grafico-cierres-asesor";
 import { GraficoLineaRegistros } from "@/components/grafico-linea-registros";
@@ -8,6 +9,7 @@ import { formatearFechaHoraBolivia } from "@/lib/fechas";
 import { SelectorRangoFechas } from "@/components/selector-rango-fechas";
 import type { ReactNode } from "react";
 import Link from "next/link";
+
 
 function formatoBs(valor: number): string {
   return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
@@ -111,15 +113,15 @@ export default async function DashboardPage({
             titulo="Evolución de registros"
             descripcion="Visualiza el comportamiento diario de los cierres registrados en el sistema."
           >
-            <GraficoLineaRegistros
-              datos={metricas.evolucionRegistros}
-            />
+            <GraficoLineaRegistros datos={metricas.evolucionRegistros} />
           </PanelGrafico>
         </div>
 
-        <div className="xl:col-span-4">
-          <TarjetaMetaMensual
-            meta={metricas.metaMensual}
+        <div className="flex flex-col gap-6 xl:col-span-4">
+          <TarjetaMetaMensual meta={metricas.metaMensual} />
+
+          <TarjetaObjetivosOficina
+            objetivos={metricas.objetivosAnualesOficina}
           />
         </div>
       </section>

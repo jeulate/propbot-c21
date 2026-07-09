@@ -145,6 +145,15 @@ export type MetaMensualInput = Omit<
   "id" | "creadoEn" | "actualizadoEn"
 >;
 
+export interface ObjetivosOficina {
+  centurion: number;
+  dobleCenturion: number;
+  grandCenturion: number;
+  actualizadoEn: string;
+}
+
+export type ObjetivosOficinaInput = Omit<ObjetivosOficina, "actualizadoEn">;
+
 /** Permisos por rol — usado tanto en backend (rutas API) como en UI (ocultar acciones) */
 export const PERMISOS: Record<RolUsuarioAdmin, { exportar: boolean; verificar: boolean; gestionarAsesores: boolean; gestionarUsuarios: boolean }> = {
   ADMIN: { exportar: true, verificar: true, gestionarAsesores: true, gestionarUsuarios: true },
