@@ -65,51 +65,40 @@ function ObjetivoRadial({
 
   return (
     <div className="relative overflow-hidden rounded-xl bg-gold-50 p-4 dark:bg-carbon-900">
-        <div className="relative z-10 flex items-start justify-between gap-3">
+      <div className="relative z-10 flex items-start justify-between gap-3">
         <div>
-            <p className="font-display text-sm font-semibold text-carbon-900 dark:text-gold-50">
+          <p className="font-display text-sm font-semibold text-carbon-900 dark:text-gold-50">
             {titulo}
-            </p>
-            <p className="mt-1 text-xs text-carbon-500 dark:text-gold-100/45">
+          </p>
+          <p className="mt-1 text-xs text-carbon-500 dark:text-gold-100/45">
             Meta: {formatoBs(objetivo.objetivo)}
-            </p>
+          </p>
         </div>
+      </div>
 
-        <span className="rounded-full bg-gold-200 px-2.5 py-1 text-xs font-semibold text-carbon-800 dark:bg-carbon-700 dark:text-gold-100">
-            {porcentaje.toFixed(1)}%
-        </span>
-        </div>
-
-        <div className="relative z-10 mt-4 grid grid-cols-[1fr_92px] items-center gap-2">
-        <div className="relative">
-            <Chart
-            options={options}
-            series={[porcentaje]}
-            type="radialBar"
-            height={150}
-            />
-        </div>
+      <div className="relative z-10 mt-3">
+        <Chart options={options} series={[porcentaje]} type="radialBar" height={170} />
 
         <img
-            src={imagen}
-            alt=""
-            aria-hidden="true"
-            className="h-28 w-28 object-contain drop-shadow-2xl"
+          src={imagen}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[52%] h-20 w-20 -translate-x-1/2 -translate-y-1/2 object-contain opacity-90 drop-shadow-xl"
         />
-        </div>
+      </div>
 
-        <div className="relative z-10 mt-2 rounded-lg bg-white/85 px-3 py-2 dark:bg-carbon-800/85">
-        <div className="flex items-center justify-between gap-3 text-xs">
-            <span className="text-carbon-600 dark:text-gold-100/60">
+      <div className="relative z-10 mt-2 rounded-lg bg-white/80 px-3 py-2 dark:bg-carbon-800/80">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-carbon-600 dark:text-gold-100/60">
             {objetivo.alcanzado ? "Meta alcanzada" : "Faltante"}
-            </span>
-            <span className="text-right font-semibold text-carbon-900 dark:text-gold-50">
+          </span>
+          <span className="font-semibold text-carbon-900 dark:text-gold-50">
             {objetivo.alcanzado ? "Completado" : formatoBs(objetivo.faltante)}
-            </span>
+          </span>
         </div>
-        </div>
+      </div>
     </div>
-    );
+  );
 }
 
 export function TarjetaObjetivosOficina({
