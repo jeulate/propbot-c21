@@ -1,7 +1,7 @@
 import { obtenerMetricas } from "@/lib/repositories/cierres";
 import { TarjetaMetaMensual } from "@/components/tarjeta-meta-mensual";
 import { TarjetaObjetivosOficina } from "@/components/tarjeta-objetivos-oficina";
-import { TarjetaMetrica, TarjetaMetricaSaas } from "@/components/tarjeta-metrica";
+import { TarjetaMetrica, TarjetaMetricaSaas, TarjetaMetricaIcono } from "@/components/tarjeta-metrica";
 import { GraficoRanking } from "@/components/grafico-cierres-asesor";
 import { GraficoLineaRegistros } from "@/components/grafico-linea-registros";
 import type { PeriodoDashboard } from "@/lib/fechas";
@@ -89,12 +89,22 @@ export default async function DashboardPage({
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TarjetaMetrica
+          <TarjetaMetricaIcono
             etiqueta="Pago real a asesores"
             valor={formatoBs(metricas.totalPagosReales)}
+            subtexto="Total acumulado del período"
+            icono={
+              <svg
+                className="h-6 w-6 fill-current"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M12 2C6.48 2 2 5.13 2 9v6c0 3.87 4.48 7 10 7s10-3.13 10-7V9c0-3.87-4.48-7-10-7Zm0 2c4.42 0 8 2.24 8 5s-3.58 5-8 5-8-2.24-8-5 3.58-5 8-5Zm0 16c-4.42 0-8-2.24-8-5v-2.08C5.79 14.79 8.71 16 12 16s6.21-1.21 8-3.08V15c0 2.76-3.58 5-8 5Z" />
+              </svg>
+            }
           />
 
-          <TarjetaMetrica
+          <TarjetaMetricaIcono
             etiqueta="Pendientes de revisión"
             valor={String(metricas.pendientesRevision)}
             tono={metricas.pendientesRevision > 0 ? "warn" : "ok"}
@@ -103,12 +113,19 @@ export default async function DashboardPage({
                 ? "Requieren verificación"
                 : "Todo verificado"
             }
+            icono={
+              <svg
+                className="h-6 w-6 fill-current"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 15h-2v-2h2Zm0-4h-2V7h2Z" />
+              </svg>
+            }
           />
         </div>
 
-        <TarjetaObjetivosOficina
-          objetivos={metricas.objetivosAnualesOficina}
-        />
+        <TarjetaObjetivosOficina objetivos={metricas.objetivosAnualesOficina} />
       </section>
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="xl:col-span-8">

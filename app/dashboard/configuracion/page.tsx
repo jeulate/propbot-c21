@@ -45,11 +45,9 @@ export default async function ConfiguracionPage() {
         captacionesIniciales={captaciones}
       />
       <GestionMetas metasIniciales={metas} />
-      <GestionMetas metasIniciales={metas} />
       <GestionObjetivosOficina objetivosIniciales={objetivosOficina} />
-
       <GestionCuentaComision cuentaInicial={cuentaComision} />
-      <GestionCuentaComision cuentaInicial={cuentaComision} />
+      
     </div>
   );
 }
