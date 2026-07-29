@@ -19,6 +19,8 @@ export const KEYS = {
   cierresIndex: `${NAMESPACE}:cierres:index`, // sorted set: score = timestamp de creación, member = id
   asesor: (telegramId: string) => `${NAMESPACE}:asesor:${telegramId}`,
   asesoresIndex: `${NAMESPACE}:asesores:index`, // set de telegramIds
+  agrupacionAsesor: (id: string) => `${NAMESPACE}:agrupacion-asesor:${id}`,
+  agrupacionesAsesorIndex: `${NAMESPACE}:agrupaciones-asesor:index`,
   categoriaAsesor: (id: string) => `${NAMESPACE}:categoria-asesor:${id}`,
   categoriasAsesorIndex: `${NAMESPACE}:categorias-asesor:index`, // set de ids
   configuracionComisiones: `${NAMESPACE}:configuracion:comisiones`,

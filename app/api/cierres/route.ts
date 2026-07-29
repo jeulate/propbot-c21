@@ -4,7 +4,8 @@ import { obtenerSesionActual } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const sesion = await obtenerSesionActual();
-  if (!sesion) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  if (!sesion)
+    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const desde = Number(searchParams.get("desde") ?? "0");

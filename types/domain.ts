@@ -92,6 +92,22 @@ export interface AsesorAutorizado {
   activo: boolean;
   agregadoPorAdminId: string;
   creadoEn: string;
+  celular?: string;
+  avatarPathname?: string;
+  teamId?: string;
+  equipoTriple21Id?: string;
+}
+
+export type TipoAgrupacionAsesor = "TEAM" | "EQUIPO_TRIPLE_21";
+
+export interface AgrupacionAsesor {
+  id: string;
+  nombre: string;
+  tipo: TipoAgrupacionAsesor;
+  activo: boolean;
+  responsableTelegramId?: string;
+  creadoEn: string;
+  actualizadoEn: string;
 }
 
 export interface CategoriaAsesor {
@@ -104,6 +120,7 @@ export interface CategoriaAsesor {
 
 export interface ConfiguracionComisiones {
   porcentajeOficinaNacional: number;
+  nombreOficina?: string;
   actualizadoEn: string;
 }
 
@@ -155,8 +172,31 @@ export interface ObjetivosOficina {
 export type ObjetivosOficinaInput = Omit<ObjetivosOficina, "actualizadoEn">;
 
 /** Permisos por rol — usado tanto en backend (rutas API) como en UI (ocultar acciones) */
-export const PERMISOS: Record<RolUsuarioAdmin, { exportar: boolean; verificar: boolean; gestionarAsesores: boolean; gestionarUsuarios: boolean }> = {
-  ADMIN: { exportar: true, verificar: true, gestionarAsesores: true, gestionarUsuarios: true },
-  SUPERVISOR: { exportar: true, verificar: true, gestionarAsesores: true, gestionarUsuarios: false },
-  LECTOR: { exportar: true, verificar: false, gestionarAsesores: false, gestionarUsuarios: false },
+export const PERMISOS: Record<
+  RolUsuarioAdmin,
+  {
+    exportar: boolean;
+    verificar: boolean;
+    gestionarAsesores: boolean;
+    gestionarUsuarios: boolean;
+  }
+> = {
+  ADMIN: {
+    exportar: true,
+    verificar: true,
+    gestionarAsesores: true,
+    gestionarUsuarios: true,
+  },
+  SUPERVISOR: {
+    exportar: true,
+    verificar: true,
+    gestionarAsesores: true,
+    gestionarUsuarios: false,
+  },
+  LECTOR: {
+    exportar: true,
+    verificar: false,
+    gestionarAsesores: false,
+    gestionarUsuarios: false,
+  },
 };

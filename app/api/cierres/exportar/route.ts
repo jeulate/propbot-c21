@@ -3,6 +3,8 @@ import ExcelJS from "exceljs";
 import { listarTodosLosCierres } from "@/lib/repositories/cierres";
 import { obtenerSesionActual } from "@/lib/auth";
 import { PERMISOS } from "@/types/domain";
+import { obtenerAsesor } from "@/lib/repositories/asesores";
+import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 
 /**
  * Genera un .xlsx con el mismo layout que el formato original
@@ -12,12 +14,44 @@ import { PERMISOS } from "@/types/domain";
  */
 export async function GET() {
   const sesion = await obtenerSesionActual();
-  if (!sesion) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  if (!sesion)
+    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   if (!PERMISOS[sesion.rol].exportar) {
-    return NextResponse.json({ error: "No tienes permiso para exportar." }, { status: 403 });
+    return NextResponse.json(
+      { error: "No tienes permiso para exportar." },
+      { status: 403 },
+    );
   }
 
   const cierres = await listarTodosLosCierres();
+  const configuracion = await obtenerConfiguracionComisiones();
+  const cierresExportables = await Promise.all(
+    cierres.map(async (cierre) => {
+      const [captador, colocador] = await Promise.all([
+        cierre.asesorCaptadorId.startsWith("externo:")
+          ? null
+          : obtenerAsesor(cierre.asesorCaptadorId),
+        cierre.asesorColocadorId.startsWith("externo:")
+          ? null
+          : obtenerAsesor(cierre.asesorColocadorId),
+      ]);
+      return {
+        ...cierre,
+        asesorCaptadorOficina:
+          cierre.asesorCaptadorOficina ||
+          (captador ? configuracion.nombreOficina : "") ||
+          "",
+        asesorCaptadorTelefono:
+          cierre.asesorCaptadorTelefono || captador?.celular || "",
+        asesorColocadorOficina:
+          cierre.asesorColocadorOficina ||
+          (colocador ? configuracion.nombreOficina : "") ||
+          "",
+        asesorColocadorTelefono:
+          cierre.asesorColocadorTelefono || colocador?.celular || "",
+      };
+    }),
+  );
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Century 21 Rita Quiroga - Sistema de Control de Cierres";
@@ -64,11 +98,19 @@ export async function GET() {
     const cell = filaEncabezado.getCell(i + 1);
     cell.value = texto;
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFB8860B" } };
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFB8860B" },
+    };
+    cell.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true,
+    };
   });
 
-  cierres.forEach((c, i) => {
+  cierresExportables.forEach((c, i) => {
     const row = sheet.getRow(5 + i);
     row.values = [
       c.fechaCierre,
@@ -78,7 +120,10 @@ export async function GET() {
       c.direccionInmueble,
       c.tipoTransaccion,
       c.montoTransaccion,
-      c.asesorCaptadorId === c.registradoPorTelegramId && c.asesorColocadorId === c.registradoPorTelegramId ? 4 : 2,
+      c.asesorCaptadorId === c.registradoPorTelegramId &&
+      c.asesorColocadorId === c.registradoPorTelegramId
+        ? 4
+        : 2,
       c.porcentajeOficinaNacionalAplicado,
       c.montoPagoOficinaNacional,
       c.porcentajeOficinaLocalAplicado,
@@ -109,7 +154,8 @@ export async function GET() {
 
   return new NextResponse(buffer, {
     headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "Content-Disposition": `attachment; filename="${nombreArchivo}"`,
     },
   });
