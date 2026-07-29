@@ -33,6 +33,7 @@ function redirigirALogin(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/api/perfil/:path*",
     "/api/cierres/:path*",
     "/api/asesores/:path*",
     "/api/usuarios/:path*",
