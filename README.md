@@ -1,212 +1,534 @@
-# Control de Cierres — Century 21 Rita Quiroga
+# PropBot C21 — Control de cierres inmobiliarios
 
-Sistema de registro y monitoreo de cierres inmobiliarios. Los asesores registran cada cierre conversando con un **bot de Telegram**; los administrativos lo revisan, verifican y exportan desde un **dashboard web** con autenticación por roles.
+Sistema web para registrar, revisar y analizar cierres inmobiliarios de **Century 21 Rita Quiroga**. Integra un bot de Telegram para la captura guiada de información y un dashboard administrativo con métricas, metas, comisiones, gestión de asesores, usuarios y perfiles.
 
+## Estado del proyecto
+
+- Aplicación desplegada en Vercel.
+- Rama estable y de producción: `main`.
+- Integración continua mediante GitHub Actions y validaciones de Vercel.
+- Módulo de gestión de usuarios y perfiles incorporado en el PR #1.
+- Último cierre documentado: commit `3eb4b16`.
+
+## Objetivos
+
+- Estandarizar el registro de cierres inmobiliarios.
+- Reducir errores mediante un flujo conversacional validado.
+- Centralizar la revisión y administración de operaciones.
+- Controlar el acceso mediante roles y permisos.
+- Visualizar métricas, metas, captaciones, comisiones y objetivos.
+- Exportar la información operativa a Excel.
+- Mantener una arquitectura preparada para nuevas automatizaciones.
+
+## Arquitectura general
+
+```mermaid
+flowchart TD
+    A["Asesor en Telegram"] --> B["Bot con grammY"]
+    B --> C["API de Next.js"]
+    D["Usuario del dashboard"] --> E["Dashboard web"]
+    E --> C
+    C --> F["Vercel KV / Redis"]
+    C --> G["Vercel Blob privado"]
+    C --> H["Exportación Excel"]
 ```
-Asesor (Telegram) ──> Bot (grammY) ──> Vercel KV (Redis) ──> Dashboard (Next.js) ──> Excel
-```
 
-## Stack técnico
+### Flujo principal
 
-| Capa | Tecnología |
-|---|---|
-| Framework web | Next.js 14 (App Router) |
-| Hosting | Vercel |
-| Base de datos | Vercel KV (Redis) |
-| Bot de Telegram | [grammY](https://grammy.dev) |
-| Estilos | Tailwind CSS |
-| Autenticación | JWT propio (`jose`) + cookies httpOnly |
-| Exportación a Excel | ExcelJS |
-| Gráficos | Recharts |
-| CI/CD | GitHub Actions → Vercel |
+1. Un asesor autorizado inicia el registro desde Telegram.
+2. El bot solicita y valida los datos de la operación.
+3. El cierre se guarda en Redis con estado pendiente de revisión.
+4. Un usuario autorizado revisa la operación desde el dashboard.
+5. La información alimenta métricas, gráficos, metas y reportes.
+6. Los cierres pueden exportarse a un archivo `.xlsx`.
 
-## Estructura del proyecto
+## Stack tecnológico
 
-```
+| Área              | Tecnología                              |
+| ----------------- | --------------------------------------- |
+| Framework         | Next.js 14.2.35 con App Router          |
+| Lenguaje          | TypeScript 5                            |
+| Interfaz          | React 18 y Tailwind CSS 3               |
+| Iconografía       | Lucide React                            |
+| Gráficos          | ApexCharts, React ApexCharts y Recharts |
+| Fechas            | date-fns, Flatpickr y React Flatpickr   |
+| Validación        | Zod                                     |
+| Bot               | grammY                                  |
+| Base de datos     | Vercel KV sobre Redis                   |
+| Archivos privados | Vercel Blob                             |
+| Autenticación     | JWT con `jose` y cookies `httpOnly`     |
+| Contraseñas       | bcryptjs                                |
+| Exportación       | ExcelJS                                 |
+| Hosting           | Vercel                                  |
+| CI/CD             | GitHub Actions y Vercel                 |
+
+## Funcionalidades
+
+### Dashboard
+
+- Resumen de indicadores operativos.
+- Gráficos de cierres por asesor y evolución de registros.
+- Selector de rango de fechas.
+- Diseño adaptable a escritorio y dispositivos móviles.
+- Navegación lateral colapsable.
+- Compatibilidad con tema claro y oscuro.
+- Menú de usuario con avatar, nombre, cargo y acceso al perfil.
+
+### Cierres inmobiliarios
+
+- Registro guiado mediante Telegram.
+- Consulta y revisión desde el dashboard.
+- Vista individual de cada cierre.
+- Estados de validación.
+- Visualización de comprobantes de pago.
+- Exportación a Excel.
+- Cálculos asociados a comisiones.
+
+### Asesores
+
+- Lista autorizada de asesores que pueden utilizar el bot.
+- Alta, consulta y baja mediante el dashboard.
+- Asociación mediante el identificador de Telegram.
+- Categorías de asesor.
+- Captaciones y metas mensuales.
+
+### Metas y gestión comercial
+
+- Metas mensuales por asesor.
+- Captaciones mensuales.
+- Objetivos generales de oficina.
+- Configuración de comisiones.
+- Cuenta de comisión.
+- Indicadores de avance y cumplimiento.
+
+### Usuarios y perfiles
+
+- Creación de usuarios desde `/dashboard/usuarios/crear`.
+- Listado administrativo en `/dashboard/usuarios`.
+- Ficha individual en `/dashboard/usuarios/[username]`.
+- Edición de información personal, rol y estado.
+- Confirmación antes de activar o desactivar una cuenta.
+- Actualización automática del listado después de los cambios.
+- Protección para evitar la desactivación accidental de la propia cuenta.
+- Perfil personal en `/dashboard/perfil`.
+- Carga, reemplazo y eliminación de fotografía.
+- Sincronización inmediata del avatar con el encabezado.
+- Selector de archivo adaptado a los temas claro y oscuro.
+
+### Fotografías privadas
+
+Las fotografías se almacenan en Vercel Blob con acceso privado. La aplicación no expone directamente el archivo: las rutas protegidas validan la sesión antes de obtener y entregar la imagen.
+
+## Roles y permisos
+
+| Capacidad                         | ADMIN |  SUPERVISOR   | LECTOR |
+| --------------------------------- | :---: | :-----------: | :----: |
+| Consultar cierres                 |  Sí   |      Sí       |   Sí   |
+| Verificar o rechazar cierres      |  Sí   |      Sí       |   No   |
+| Exportar información              |  Sí   |      Sí       |   Sí   |
+| Gestionar asesores                |  Sí   |      Sí       |   No   |
+| Gestionar configuración operativa |  Sí   | Según permiso |   No   |
+| Gestionar usuarios                |  Sí   |      No       |   No   |
+| Consultar y actualizar su perfil  |  Sí   |      Sí       |   Sí   |
+
+Los permisos deben verificarse tanto en la interfaz como en las rutas API. Ocultar una acción en pantalla no sustituye la autorización del servidor.
+
+## Datos registrados por el bot
+
+El flujo conversacional conserva el mapeo del formato de control de cierres:
+
+- Fecha de cierre.
+- Identificador de la operación.
+- Asesor captador.
+- Asesor colocador.
+- Dirección del inmueble.
+- Tipo de transacción: venta, alquiler o anticrético.
+- Monto de la transacción.
+- Monto de comisión.
+- Tipo de cambio.
+- Nombre y teléfono del propietario.
+- Nombre y teléfono del cliente.
+- Existencia de exclusiva.
+- Comprobantes y datos complementarios definidos por el flujo.
+
+## Estructura principal
+
+```text
 app/
-  api/
-    auth/login, auth/logout       → autenticación del dashboard
-    cierres/                      → listar, verificar, exportar cierres
-    asesores/                     → whitelist de asesores autorizados
-    usuarios/                     → gestión de usuarios admin
-    telegram/webhook/             → endpoint que recibe los updates del bot
-  dashboard/
-    page.tsx                      → resumen con métricas y gráficos
-    cierres/                      → tabla completa + exportar a Excel
-    asesores/                     → alta/baja de asesores autorizados
-    usuarios/                     → alta de usuarios admin (solo rol ADMIN)
-  login/                          → pantalla de acceso
+├── api/
+│   ├── asesores/                # Gestión de asesores autorizados
+│   ├── auth/                    # Inicio y cierre de sesión
+│   ├── captaciones-mensuales/   # Captaciones por periodo
+│   ├── categorias/              # Categorías de asesores
+│   ├── cierres/                 # Operaciones, estados y exportación
+│   ├── configuracion/           # Configuración operativa
+│   ├── cuenta-comision/         # Cuenta y cálculo de comisión
+│   ├── metas-mensuales/         # Metas por asesor
+│   ├── objetivos-oficina/       # Objetivos globales
+│   ├── perfil/                  # Perfil y avatar del usuario autenticado
+│   ├── telegram/                # Webhook y acceso controlado a archivos
+│   └── usuarios/                # Administración de usuarios y avatares
+├── dashboard/
+│   ├── asesores/
+│   ├── cierres/
+│   ├── configuracion/
+│   ├── perfil/
+│   └── usuarios/
+├── login/
+├── globals.css
+└── layout.tsx
 
-components/                       → componentes de UI reutilizables
+components/
+├── dashboard/                   # Shell, encabezado y menú de usuario
+├── gestion-*.tsx                # Componentes de módulos administrativos
+├── perfil-usuario*.tsx          # Perfil personal y perfil administrativo
+├── tabla-cierres.tsx
+├── tarjeta-*.tsx                # Métricas, metas y objetivos
+└── theme-toggle.tsx
+
 lib/
-  bot/
-    bot.ts                        → lógica conversacional del bot (grammY)
-    estado-conversacion.ts        → máquina de estados paso a paso
-    validadores.ts                → validación de cada campo del formulario
-  repositories/
-    cierres.ts, asesores.ts, usuarios-admin.ts   → acceso a datos en Redis
-  auth.ts                         → JWT de sesión
-  redis.ts                        → cliente de Vercel KV y claves usadas
+├── bot/                         # Conversación, estado y validadores
+├── repositories/                # Acceso a datos por dominio
+├── services/                    # Integraciones y servicios
+├── auth.ts                      # Sesiones JWT
+├── comisiones.ts
+├── fechas.ts
+└── redis.ts
 
-types/domain.ts                   → tipos del dominio (mapeados al Excel original)
-scripts/                          → utilidades de línea de comandos (ver abajo)
+scripts/
+├── bot-polling-dev.ts
+├── delete-webhook.ts
+├── seed-admin.ts
+└── set-webhook.ts
+
+types/
+├── domain.ts
+└── usuario.ts
 ```
 
-## Campos registrados (mapeo 1:1 con el Excel original)
+## Rutas del dashboard
 
-El bot le pregunta al asesor, en este orden, exactamente los mismos campos del formato `CONTROL DE CIERRES`:
+| Ruta                             | Descripción                               |
+| -------------------------------- | ----------------------------------------- |
+| `/login`                         | Inicio de sesión                          |
+| `/dashboard`                     | Métricas y resumen general                |
+| `/dashboard/cierres`             | Listado de cierres                        |
+| `/dashboard/cierres/[id]`        | Detalle de un cierre                      |
+| `/dashboard/asesores`            | Administración de asesores                |
+| `/dashboard/configuracion`       | Metas, categorías, comisiones y objetivos |
+| `/dashboard/perfil`              | Perfil del usuario autenticado            |
+| `/dashboard/usuarios`            | Listado de usuarios                       |
+| `/dashboard/usuarios/crear`      | Creación de usuarios                      |
+| `/dashboard/usuarios/[username]` | Perfil administrativo de un usuario       |
 
-`FECHA CIERRE` · `ID` · `ASESOR CAPTADOR` · `ASESOR COLOCADOR` · `DIRECCIÓN DEL INMUEBLE` · `TIPO DE TRANSACCIÓN` (Venta / Alquiler / Anticrético) · `MONTO TRANSACCIÓN` · `MONTO COMISIÓN` · `T.C.` · `NOMBRE PROPIETARIO` · `TEL. PROPIETARIO` · `NOMBRE CLIENTE` · `TEL. CLIENTE` · `EXCLUSIVA (SI/NO)`
+## Endpoints principales
 
----
+| Endpoint                          | Responsabilidad                               |
+| --------------------------------- | --------------------------------------------- |
+| `/api/auth/login`                 | Autenticar y crear la sesión                  |
+| `/api/auth/logout`                | Finalizar la sesión                           |
+| `/api/cierres`                    | Consultar y registrar cierres                 |
+| `/api/cierres/[id]`               | Consultar o actualizar un cierre              |
+| `/api/cierres/exportar`           | Generar la exportación Excel                  |
+| `/api/asesores`                   | Listar y crear asesores                       |
+| `/api/asesores/[telegramId]`      | Operar sobre un asesor                        |
+| `/api/categorias`                 | Administrar categorías                        |
+| `/api/metas-mensuales`            | Administrar metas                             |
+| `/api/captaciones-mensuales`      | Administrar captaciones                       |
+| `/api/objetivos-oficina`          | Administrar objetivos de oficina              |
+| `/api/configuracion`              | Gestionar configuración                       |
+| `/api/cuenta-comision`            | Gestionar la cuenta de comisión               |
+| `/api/perfil`                     | Consultar y actualizar el perfil propio       |
+| `/api/perfil/avatar`              | Cargar, consultar o eliminar el avatar propio |
+| `/api/usuarios`                   | Listar y crear usuarios                       |
+| `/api/usuarios/[username]`        | Consultar y actualizar un usuario             |
+| `/api/usuarios/[username]/avatar` | Obtener el avatar privado de un usuario       |
+| `/api/telegram/webhook`           | Recibir actualizaciones de Telegram           |
+| `/api/telegram/file`              | Entregar archivos autorizados de Telegram     |
 
-## 1. Configuración inicial
+## Requisitos
 
-### 1.1. Clonar y abrir en VS Code
+- Node.js `18.18.0` o superior.
+- npm.
+- Repositorio Git.
+- Proyecto de Vercel.
+- Base Vercel KV.
+- Almacén Vercel Blob.
+- Bot de Telegram creado mediante BotFather.
+
+## Instalación local
+
+### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/<tu-usuario>/century21-control-cierres.git
-cd century21-control-cierres
-code .
+git clone https://github.com/jeulate/propbot-c21.git
+cd propbot-c21
 ```
 
-Instala la extensión **GitHub Copilot** en VS Code si aún no la tienes; este repo incluye instrucciones en `.github/copilot-instructions.md` para que Copilot entienda las convenciones del proyecto.
+### 2. Instalar dependencias
 
-### 1.2. Instalar dependencias
+Para una instalación reproducible basada en `package-lock.json`:
 
 ```bash
-npm install
+npm ci
 ```
 
-### 1.3. Crear el bot de Telegram
+### 3. Configurar las variables
 
-1. Abre Telegram y busca **@BotFather**.
-2. Envía `/newbot`, elige un nombre y un username (debe terminar en `bot`).
-3. BotFather te entregará un **token** — lo necesitas en el siguiente paso.
-
-### 1.4. Crear el KV Store (Redis) en Vercel
-
-1. En [vercel.com](https://vercel.com), entra a tu proyecto → **Storage** → **Create Database** → elige **KV**.
-2. Una vez creado, Vercel te muestra `KV_REST_API_URL` y `KV_REST_API_TOKEN`. Cópialos.
-
-### 1.5. Variables de entorno
-
-Copia el archivo de ejemplo y completa los valores:
-
-```bash
-cp .env.example .env.local
-```
+Crea `.env.local` en la raíz. No confirmes este archivo en Git.
 
 ```env
-TELEGRAM_BOT_TOKEN=el_token_de_botfather
-TELEGRAM_WEBHOOK_SECRET=una_cadena_aleatoria   # openssl rand -hex 24
-KV_REST_API_URL=...                            # desde Vercel KV
-KV_REST_API_TOKEN=...                          # desde Vercel KV
-AUTH_SECRET=...                                # openssl rand -base64 32
-APP_URL=https://tu-proyecto.vercel.app         # se completa tras el primer deploy
+APP_URL=http://localhost:3000
+AUTH_SECRET=
+
+KV_REST_API_URL=
+KV_REST_API_TOKEN=
+KV_REST_API_READ_ONLY_TOKEN=
+
+BLOB_READ_WRITE_TOKEN=
+BLOB_STORE_ID=
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_WEBHOOK_SECRET=
+TELEGRAM_CHAT_ID=
 ```
 
-### 1.6. Crear el primer usuario administrador
+### Variables de aplicación
+
+| Variable                      |     Obligatoria      | Uso                                       |
+| ----------------------------- | :------------------: | ----------------------------------------- |
+| `APP_URL`                     |          Sí          | URL base local o de producción            |
+| `AUTH_SECRET`                 |          Sí          | Firma y validación de sesiones JWT        |
+| `KV_REST_API_URL`             |          Sí          | URL del servicio Redis                    |
+| `KV_REST_API_TOKEN`           |          Sí          | Acceso de lectura y escritura a Redis     |
+| `KV_REST_API_READ_ONLY_TOKEN` |     Recomendada      | Acceso de solo lectura cuando corresponda |
+| `BLOB_READ_WRITE_TOKEN`       |   Sí para avatares   | Operaciones privadas en Vercel Blob       |
+| `BLOB_STORE_ID`               |  Según integración   | Identificador del almacén Blob            |
+| `TELEGRAM_BOT_TOKEN`          |    Sí para el bot    | Credencial entregada por BotFather        |
+| `TELEGRAM_WEBHOOK_SECRET`     |   Sí en producción   | Validación de solicitudes del webhook     |
+| `TELEGRAM_CHAT_ID`            | Según notificaciones | Chat o grupo receptor                     |
+
+Las variables `VERCEL_*` detectadas durante el despliegue son proporcionadas automáticamente por Vercel. No deben copiarse manualmente a `.env.local`, salvo que una prueba específica y controlada lo requiera.
+
+### 4. Crear el usuario administrador inicial
 
 ```bash
-npm run seed:admin -- --username=admin --password=TuClaveSegura123 --nombre="Rita Quiroga" --rol=ADMIN
+npm run seed:admin -- --username=admin --password=TuClaveSegura --nombre="Administrador" --rol=ADMIN
 ```
 
----
+Usa una contraseña robusta y evita dejar credenciales reales en el historial de la terminal, capturas o documentación compartida.
 
-## 2. Desarrollo local
-
-### 2.1. Levantar el dashboard
+### 5. Iniciar el dashboard
 
 ```bash
 npm run dev
 ```
-Abre [http://localhost:3000](http://localhost:3000) e ingresa con el usuario creado en el paso 1.6.
 
-### 2.2. Probar el bot localmente (modo polling)
+Abre [http://localhost:3000](http://localhost:3000).
 
-Mientras desarrollas, no necesitas exponer tu máquina a internet: usa long-polling en vez de webhook.
+## Desarrollo del bot
+
+Para probar Telegram mediante polling local:
 
 ```bash
-npm run bot:webhook:delete   # por si ya habías configurado un webhook
+npm run bot:webhook:delete
 npm run bot:dev
 ```
 
-Abre Telegram, busca tu bot y envía `/start`. Para poder registrar cierres, primero debes agregarte como asesor autorizado desde el dashboard (`/dashboard/asesores`) usando tu ID de Telegram (pregúntaselo a `@userinfobot`).
+El asesor debe estar registrado en la lista autorizada antes de iniciar un cierre.
 
----
-
-## 3. Despliegue a producción (Vercel)
-
-### 3.1. Conectar el repositorio
-
-1. En Vercel, **Add New → Project** → importa este repositorio de GitHub.
-2. Agrega las variables de entorno del paso 1.5 en **Settings → Environment Variables** (las mismas que en `.env.local`, sin `APP_URL` todavía).
-3. Despliega. Vercel te dará una URL pública, ej: `https://century21-control-cierres.vercel.app`.
-4. Vuelve a Settings → Environment Variables y agrega `APP_URL` con esa URL. Vuelve a desplegar (o espera al próximo push).
-
-### 3.2. Activar el webhook de Telegram
-
-Con `APP_URL` ya configurado en tu `.env.local` (apuntando a la URL de producción):
+Para volver a activar el webhook:
 
 ```bash
 npm run bot:webhook:set
 ```
 
-Esto le dice a Telegram que envíe los mensajes del bot a `https://tu-proyecto.vercel.app/api/telegram/webhook`.
+El destino esperado es:
 
-### 3.3. CI/CD con GitHub Actions
+```text
+https://tu-dominio/api/telegram/webhook
+```
 
-Este repo incluye dos workflows:
+No ejecutes polling y webhook simultáneamente con el mismo bot.
 
-- **`.github/workflows/ci.yml`** — corre en cada push/PR: lint, type-check y build. Así ningún error llega a `main`.
-- **`.github/workflows/deploy.yml`** — despliega automáticamente a producción en cada push a `main`.
+## Comandos disponibles
 
-Para que el deploy automático funcione, agrega estos **secrets** en GitHub (`Settings → Secrets and variables → Actions`):
+| Comando                      | Acción                                    |
+| ---------------------------- | ----------------------------------------- |
+| `npm run dev`                | Inicia Next.js en desarrollo              |
+| `npm run build`              | Genera la compilación de producción       |
+| `npm run start`              | Inicia la compilación generada            |
+| `npm run lint`               | Ejecuta ESLint                            |
+| `npm run typecheck`          | Valida TypeScript sin emitir archivos     |
+| `npm run seed:admin`         | Crea o actualiza el administrador inicial |
+| `npm run bot:dev`            | Ejecuta el bot en polling local           |
+| `npm run bot:webhook:set`    | Registra el webhook de producción         |
+| `npm run bot:webhook:delete` | Elimina el webhook actual                 |
 
-| Secret | De dónde sacarlo |
-|---|---|
-| `VERCEL_TOKEN` | [vercel.com/account/tokens](https://vercel.com/account/tokens) |
-| `VERCEL_PROJECT_NAME` | El nombre exacto del proyecto en Vercel |
+## Validaciones antes de un commit
 
-> 💡 Alternativa más simple: si prefieres que Vercel despliegue directo sin pasar por GitHub Actions, basta con conectar el repo desde el dashboard de Vercel (deploy automático nativo). El workflow `deploy.yml` es útil si quieres controlar el pipeline desde GitHub o añadir pasos adicionales (tests, notificaciones, etc.) antes de desplegar.
+```bash
+npm run lint
+npm run typecheck
+npm run build
+git diff --check
+```
+
+Actualmente pueden aparecer advertencias no bloqueantes de Next.js por el uso de `<img>` en `components/comprobante-pago-preview.tsx`. Deben tratarse como deuda técnica y no confundirse con errores de compilación.
+
+## Despliegue en Vercel
+
+1. Importa el repositorio `jeulate/propbot-c21` en Vercel.
+2. Configura las variables de entorno para producción.
+3. Vincula Vercel KV y Vercel Blob.
+4. Ejecuta el primer despliegue.
+5. Actualiza `APP_URL` con el dominio definitivo.
+6. Vuelve a desplegar si la variable cambió.
+7. Registra el webhook de Telegram.
+8. Verifica el inicio de sesión, el dashboard y el bot.
+
+Los cambios destinados a producción se integran mediante Pull Request hacia `main`. Antes del merge deben pasar, como mínimo:
+
+- Lint.
+- Validación de tipos.
+- Build de producción.
+- Verificaciones de Vercel.
+- Revisión de conflictos y archivos incluidos.
+
+## Seguridad
+
+- Las sesiones utilizan JWT en cookies `httpOnly`.
+- Las contraseñas se almacenan mediante hash con bcrypt.
+- Las rutas administrativas validan sesión, rol y permisos.
+- El middleware protege las rutas privadas.
+- Los avatares se almacenan con acceso privado.
+- El token de Blob se pasa únicamente desde el servidor.
+- El webhook de Telegram utiliza un secreto de validación.
+- Los archivos `.env*` y las credenciales no deben confirmarse en Git.
+- Las respuestas API deben evitar exponer tokens, hashes o detalles internos.
+- La activación y desactivación de cuentas requiere confirmación.
+
+## Persistencia
+
+Los repositorios de `lib/repositories/` aíslan el acceso a Redis por dominio:
+
+- Asesores.
+- Cierres.
+- Usuarios.
+- Categorías.
+- Captaciones.
+- Metas.
+- Objetivos.
+- Configuración de comisiones.
+- Cuenta de comisión.
+
+Este diseño evita concentrar toda la persistencia en las rutas y facilita evolucionar la estructura de datos.
+
+## Solución de problemas
+
+### El bot no responde
+
+- Confirma que `TELEGRAM_BOT_TOKEN` sea correcto.
+- Verifica si estás usando polling o webhook.
+- Revisa `APP_URL` y el endpoint `/api/telegram/webhook`.
+- Confirma que el asesor esté autorizado.
+
+### Error de conexión con Redis
+
+- Verifica `KV_REST_API_URL`.
+- Verifica `KV_REST_API_TOKEN`.
+- Confirma que las variables pertenezcan al entorno activo.
+
+### No se puede iniciar sesión
+
+- Confirma que ejecutaste `npm run seed:admin`.
+- Revisa `AUTH_SECRET`.
+- Verifica que la cuenta esté activa.
+- Elimina cookies locales antiguas si el secreto cambió.
+
+### El avatar no carga
+
+- Confirma `BLOB_READ_WRITE_TOKEN`.
+- Verifica que Vercel Blob esté vinculado al proyecto.
+- Revisa las respuestas de `/api/perfil/avatar`.
+- No expongas directamente el pathname privado.
+
+### Los cambios de un usuario no aparecen
+
+- Confirma que la solicitud API finalizó correctamente.
+- Verifica la actualización automática del listado.
+- Revisa que el usuario autenticado tenga rol `ADMIN`.
+
+## Roadmap
+
+### Completado
+
+- [x] Registro de cierres mediante Telegram.
+- [x] Persistencia en Redis.
+- [x] Dashboard autenticado.
+- [x] Gestión de asesores.
+- [x] Revisión de cierres y exportación Excel.
+- [x] Métricas y gráficos.
+- [x] Metas, captaciones, objetivos y comisiones.
+- [x] Tema claro y oscuro.
+- [x] Navegación adaptable y colapsable.
+- [x] Gestión de usuarios por roles.
+- [x] Perfil individual administrativo.
+- [x] Perfil personal.
+- [x] Avatares privados mediante Vercel Blob.
+- [x] Sincronización del avatar del encabezado.
+- [x] Confirmación y refresco automático al cambiar el estado de una cuenta.
+- [x] Integración continua y despliegue en Vercel.
+
+### Próximas mejoras recomendadas
+
+- [ ] Sustituir los elementos `<img>` pendientes por `next/image` cuando sea compatible con el flujo privado.
+- [ ] Incorporar pruebas unitarias para validadores, cálculos y permisos.
+- [ ] Incorporar pruebas de integración para autenticación y rutas API.
+- [ ] Añadir pruebas end-to-end de los flujos críticos.
+- [ ] Registrar auditoría detallada de cambios administrativos.
+- [ ] Añadir filtros avanzados y búsquedas persistentes.
+- [ ] Automatizar reportes mensuales.
+- [ ] Fortalecer observabilidad, alertas y trazabilidad de errores.
+- [ ] Documentar recuperación, respaldo y restauración de Redis y Blob.
+
+## Flujo de trabajo Git
+
+El repositorio utiliza `main` como rama estable:
+
+1. Actualizar `main`.
+2. Crear una rama `feature/*`, `fix/*` o `docs/*`.
+3. Implementar y validar.
+4. Confirmar cambios con un mensaje convencional.
+5. Subir la rama.
+6. Abrir un Pull Request hacia `main`.
+7. Esperar las verificaciones.
+8. Integrar el PR.
+9. Actualizar `main` local y eliminar la rama finalizada.
+
+Ejemplo:
+
+```bash
+git switch main
+git pull --ff-only origin main
+git switch -c docs/update-readme
+```
+
+## Mantenimiento de esta documentación
+
+Actualiza este archivo cuando se modifiquen:
+
+- Variables de entorno.
+- Dependencias principales.
+- Rutas web o endpoints.
+- Roles y permisos.
+- Integraciones externas.
+- Scripts.
+- Flujo de despliegue.
+- Estado del roadmap.
+
+Nunca documentes valores reales de tokens, contraseñas, secretos o identificadores sensibles.
 
 ---
 
-## 4. Roles y permisos del dashboard
-
-| Rol | Ver cierres | Verificar/rechazar | Exportar Excel | Gestionar asesores | Gestionar usuarios |
-|---|---|---|---|---|---|
-| **ADMIN** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **SUPERVISOR** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **LECTOR** | ✅ | ❌ | ✅ | ❌ | ❌ |
-
-Los permisos están centralizados en `types/domain.ts` (`PERMISOS`) y se validan tanto en las rutas API como en la UI.
-
-## 5. Flujo de un cierre
-
-1. El asesor (ya autorizado por un admin) le escribe `/nuevo` al bot.
-2. El bot pregunta, uno por uno, los 14 campos del Excel original, validando cada respuesta.
-3. Al final, el bot muestra un resumen y pide confirmación.
-4. Al confirmar, el cierre se guarda en Redis con estado `PENDIENTE_REVISION`.
-5. Un administrador o supervisor lo revisa en `/dashboard/cierres` y lo marca como `VERIFICADO` o `RECHAZADO`.
-6. En cualquier momento, se puede exportar todo a un `.xlsx` con el mismo formato del archivo original.
-
-## 6. Roadmap de mejora continua
-
-Ideas para siguientes iteraciones (el proyecto está pensado para crecer):
-
-- [ ] Notificaciones automáticas al grupo de Telegram de la oficina cuando se verifica un cierre.
-- [ ] Edición de cierres ya guardados (actualmente solo se puede cambiar el estado).
-- [ ] Filtros y búsqueda en la tabla de cierres del dashboard (por fecha, asesor, tipo).
-- [ ] Reportes mensuales automáticos (PDF o Excel) enviados por correo.
-- [ ] Métricas de ranking de asesores por período.
-- [ ] Tests automatizados (unitarios para `lib/bot/validadores.ts` y de integración para las rutas API).
-- [ ] Internacionalización del bot si la oficina expande a otras franquicias.
-
-## 7. Soporte y troubleshooting
-
-- **El bot no responde**: verifica que el webhook esté activo con `curl https://api.telegram.org/bot<TOKEN>/getWebhookInfo`.
-- **"No autorizado" en el bot**: el asesor no está en la whitelist — agrégalo desde `/dashboard/asesores`.
-- **Error de conexión a Redis**: revisa que `KV_REST_API_URL` y `KV_REST_API_TOKEN` estén bien copiados desde Vercel.
-- **No puedo iniciar sesión en el dashboard**: confirma que corriste `npm run seed:admin` y que `AUTH_SECRET` es el mismo en desarrollo y producción si comparten datos.
+Desarrollado y mantenido por **Juan Antonio Eulate / INSOFTLINE** para la gestión operativa de **Century 21 Rita Quiroga**.
