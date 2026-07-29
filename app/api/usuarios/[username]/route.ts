@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  crearUsuarioAdmin,
-  listarUsuariosAdmin,
-} from "@/lib/repositories/usuarios-admin";
 import { obtenerSesionActual } from "@/lib/auth";
+import {
+  actualizarUsuarioDesdeAdministracion,
+  obtenerUsuarioAdminPorUsername,
+} from "@/lib/repositories/usuarios-admin";
 import { PERMISOS } from "@/types/domain";
 import { usuarioAPublico } from "@/types/usuario";
 
-const esquemaCrear = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(3)
-    .max(40)
-    .regex(/^[a-zA-Z0-9._-]+$/),
-  password: z.string().min(8).max(128),
+const esquemaActualizar = z.object({
   nombre: z.string().trim().min(3).max(120),
   cargo: z.string().trim().min(2).max(100),
   email: z.string().trim().email().max(160),
   celular: z.string().trim().max(30).optional(),
   rol: z.enum(["ADMIN", "SUPERVISOR", "LECTOR"]),
+  activo: z.boolean(),
 });
 
 async function autorizar() {
@@ -35,32 +29,59 @@ async function autorizar() {
   return { sesion };
 }
 
-export async function GET() {
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { username: string } },
+) {
   const auth = await autorizar();
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
-  const usuarios = await listarUsuariosAdmin();
-  return NextResponse.json({ usuarios: usuarios.map(usuarioAPublico) });
+
+  const usuario = await obtenerUsuarioAdminPorUsername(
+    decodeURIComponent(params.username),
+  );
+  if (!usuario) {
+    return NextResponse.json(
+      { error: "Usuario no encontrado." },
+      { status: 404 },
+    );
+  }
+  return NextResponse.json({ usuario: usuarioAPublico(usuario) });
 }
 
-export async function POST(req: NextRequest) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { username: string } },
+) {
   const auth = await autorizar();
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
-  const parsed = esquemaCrear.safeParse(await req.json().catch(() => null));
+
+  const parsed = esquemaActualizar.safeParse(
+    await req.json().catch(() => null),
+  );
   if (!parsed.success) {
     return NextResponse.json(
-      {
-        error:
-          "Completa los datos requeridos. La contraseña debe tener al menos 8 caracteres.",
-      },
+      { error: "Revisa los datos personales, rol y estado." },
       { status: 400 },
     );
   }
+
+  const username = decodeURIComponent(params.username).toLowerCase();
+  if (username === auth.sesion.sub && !parsed.data.activo) {
+    return NextResponse.json(
+      { error: "No puedes desactivar tu propia cuenta." },
+      { status: 400 },
+    );
+  }
+
   try {
-    const usuario = await crearUsuarioAdmin(parsed.data);
+    const usuario = await actualizarUsuarioDesdeAdministracion(
+      username,
+      parsed.data,
+    );
     return NextResponse.json({ ok: true, usuario: usuarioAPublico(usuario) });
   } catch (error) {
     return NextResponse.json(
@@ -68,7 +89,7 @@ export async function POST(req: NextRequest) {
         error:
           error instanceof Error
             ? error.message
-            : "No se pudo crear el usuario.",
+            : "No se pudo actualizar el usuario.",
       },
       { status: 400 },
     );

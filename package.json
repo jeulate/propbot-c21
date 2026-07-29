@@ -15,6 +15,7 @@
     "bot:dev": "tsx scripts/bot-polling-dev.ts"
   },
   "dependencies": {
+    "@vercel/blob": "^2.6.1",
     "@vercel/kv": "^3.0.0",
     "apexcharts": "^5.15.2",
     "bcryptjs": "^2.4.3",

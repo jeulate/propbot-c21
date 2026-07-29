@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { clsx } from "clsx";
 
 type Tema = "dark" | "light";
 
-export function ThemeToggle() {
+export function ThemeToggle({ compacto = false }: { compacto?: boolean }) {
   const [tema, setTema] = useState<Tema>("dark");
 
   useEffect(() => {
@@ -22,15 +23,24 @@ export function ThemeToggle() {
     setTema(siguiente);
   }
 
+  const etiqueta =
+    tema === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+
   return (
     <button
       onClick={alternarTema}
-      className="focus-ring mt-3 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-carbon-600 transition-colors hover:bg-gold-100 hover:text-carbon-900 dark:text-gold-100/70 dark:hover:bg-carbon-800 dark:hover:text-gold-100"
-      title={tema === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+      className={clsx(
+        "focus-ring flex items-center rounded-lg text-carbon-600 transition-colors hover:bg-gold-100 hover:text-carbon-900 dark:text-gold-100/70 dark:hover:bg-carbon-800 dark:hover:text-gold-100",
+        compacto
+          ? "h-10 w-10 justify-center"
+          : "w-full gap-2 px-2 py-2 text-sm",
+      )}
+      title={etiqueta}
+      aria-label={etiqueta}
       type="button"
     >
-      {tema === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-      {tema === "dark" ? "Modo claro" : "Modo oscuro"}
+      {tema === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+      {!compacto && (tema === "dark" ? "Modo claro" : "Modo oscuro")}
     </button>
   );
 }

@@ -1,135 +1,183 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import {
-  LayoutDashboard,
   FileSpreadsheet,
-  Users,
-  LogOut,
+  LayoutDashboard,
   ShieldCheck,
   SlidersHorizontal,
-  Menu,
+  Users,
   X,
 } from "lucide-react";
 import type { RolUsuarioAdmin } from "@/types/domain";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 const ENLACES = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
   { href: "/dashboard/cierres", label: "Cierres", icon: FileSpreadsheet },
-  { href: "/dashboard/asesores", label: "Asesores", icon: Users, soloGestion: true },
-  { href: "/dashboard/configuracion", label: "Configuración", icon: SlidersHorizontal, soloGestion: true },
-  { href: "/dashboard/usuarios", label: "Usuarios", icon: ShieldCheck, soloAdmin: true },
+  {
+    href: "/dashboard/asesores",
+    label: "Asesores",
+    icon: Users,
+    soloGestion: true,
+  },
+  {
+    href: "/dashboard/configuracion",
+    label: "Configuración",
+    icon: SlidersHorizontal,
+    soloGestion: true,
+  },
+  {
+    href: "/dashboard/usuarios",
+    label: "Usuarios",
+    icon: ShieldCheck,
+    soloAdmin: true,
+  },
 ];
 
-export function BarraNavegacion({ nombre, rol }: { nombre: string; rol: RolUsuarioAdmin }) {
+interface BarraNavegacionProps {
+  nombre: string;
+  rol: RolUsuarioAdmin;
+  contraido: boolean;
+  expandidoTemporalmente: boolean;
+  menuMovilAbierto: boolean;
+  onCerrarMenuMovil: () => void;
+  onEntrarSidebar: () => void;
+  onSalirSidebar: () => void;
+}
+
+export function BarraNavegacion({
+  nombre,
+  rol,
+  contraido,
+  expandidoTemporalmente,
+  menuMovilAbierto,
+  onCerrarMenuMovil,
+  onEntrarSidebar,
+  onSalirSidebar,
+}: BarraNavegacionProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [menuAbierto, setMenuAbierto] = useState(false);
+  const compacto = contraido && !expandidoTemporalmente;
 
   useEffect(() => {
-    setMenuAbierto(false);
-  }, [pathname]);
+    onCerrarMenuMovil();
+  }, [pathname, onCerrarMenuMovil]);
 
-  async function cerrarSesion() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
+  const enlacesVisibles = ENLACES.filter((enlace) => {
+    if (enlace.soloAdmin) return rol === "ADMIN";
+    if (enlace.soloGestion) return rol === "ADMIN" || rol === "SUPERVISOR";
+    return true;
+  });
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-gold-200 bg-gold-50/95 px-4 py-3 backdrop-blur dark:border-carbon-700 dark:bg-carbon-900/95 md:hidden">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-gold-600 dark:text-gold-400">
-              Century 21
-            </p>
-            <p className="font-display text-base font-semibold text-carbon-900 dark:text-gold-50">
-              Rita Quiroga
-            </p>
-          </div>
-
-          <button
-            onClick={() => setMenuAbierto((prev) => !prev)}
-            className="focus-ring rounded-md border border-gold-300 bg-gold-100 p-2 text-carbon-900 dark:border-carbon-600 dark:bg-carbon-800 dark:text-gold-100"
-            aria-label={menuAbierto ? "Cerrar menu" : "Abrir menu"}
-            aria-expanded={menuAbierto}
-          >
-            {menuAbierto ? <X size={18} /> : <Menu size={18} />}
-          </button>
-        </div>
-      </header>
-
-      {menuAbierto && (
+      {menuMovilAbierto && (
         <button
-          onClick={() => setMenuAbierto(false)}
-          className="fixed inset-0 z-30 bg-carbon-950/40 backdrop-blur-sm dark:bg-carbon-950/70 md:hidden"
-          aria-label="Cerrar menu"
+          type="button"
+          onClick={onCerrarMenuMovil}
+          className="fixed inset-0 z-40 bg-carbon-950/50 backdrop-blur-sm md:hidden"
+          aria-label="Cerrar menú de navegación"
         />
       )}
 
       <aside
+        onMouseEnter={onEntrarSidebar}
+        onMouseLeave={onSalirSidebar}
         className={clsx(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-gold-200 bg-gold-50 px-4 py-6 transition-transform duration-200 dark:border-carbon-700 dark:bg-carbon-900 md:sticky md:top-0 md:z-10 md:h-screen md:w-64 md:translate-x-0",
-          menuAbierto ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-hidden border-r border-gold-200 bg-gold-50 px-3 py-5 shadow-xl transition-[transform,width] duration-300 dark:border-carbon-700 dark:bg-carbon-900 md:translate-x-0 md:shadow-none",
+          menuMovilAbierto ? "translate-x-0" : "-translate-x-full",
+          compacto ? "md:w-20" : "md:w-64",
+          expandidoTemporalmente && "md:shadow-xl",
         )}
       >
-        <div className="mb-8 px-2">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-gold-600 dark:text-gold-400">
-            Century 21
-          </p>
-          <p className="font-display text-lg font-semibold text-carbon-900 dark:text-gold-50">
-            Rita Quiroga
-          </p>
+        <div
+          className={clsx(
+            "mb-8 flex h-10 items-center",
+            compacto ? "md:justify-center" : "px-2",
+          )}
+        >
+          <div className={clsx("min-w-0", compacto && "md:hidden")}>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-gold-600 dark:text-gold-400">
+              Century 21
+            </p>
+            <p className="truncate font-display text-lg font-semibold">
+              Rita Quiroga
+            </p>
+          </div>
+          <span
+            className={clsx(
+              "hidden h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-300 font-display font-bold text-carbon-900",
+              compacto && "md:grid",
+            )}
+            title="Century 21 Rita Quiroga"
+          >
+            21
+          </span>
+          <button
+            type="button"
+            onClick={onCerrarMenuMovil}
+            className="focus-ring ml-auto rounded-lg p-2 hover:bg-gold-100 dark:hover:bg-carbon-800 md:hidden"
+            aria-label="Cerrar menú"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1">
-          {ENLACES.filter((e) => {
-            if (e.soloAdmin) return rol === "ADMIN";
-            if (e.soloGestion) return rol === "ADMIN" || rol === "SUPERVISOR";
-            return true;
-          }).map(({ href, label, icon: Icon }) => {
-            const activo = pathname === href;
+        <nav
+          className="flex flex-1 flex-col gap-1"
+          aria-label="Navegación principal"
+        >
+          {enlacesVisibles.map(({ href, label, icon: Icon }) => {
+            const activo =
+              href === "/dashboard"
+                ? pathname === href
+                : pathname.startsWith(href);
 
             return (
               <Link
                 key={href}
                 href={href}
+                title={compacto ? label : undefined}
+                aria-label={label}
                 className={clsx(
-                  "focus-ring flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                  "focus-ring flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors",
+                  compacto ? "md:justify-center md:px-0" : "gap-3",
                   activo
                     ? "bg-gold-200 text-carbon-900 dark:bg-gold-500/15 dark:text-gold-300"
-                    : "text-carbon-700 hover:bg-gold-100 hover:text-carbon-900 dark:text-gold-100/70 dark:hover:bg-carbon-800 dark:hover:text-gold-100"
+                    : "text-carbon-700 hover:bg-gold-100 hover:text-carbon-900 dark:text-gold-100/70 dark:hover:bg-carbon-800 dark:hover:text-gold-100",
                 )}
               >
-                <Icon size={18} strokeWidth={1.75} />
-                {label}
+                <Icon size={19} strokeWidth={1.75} className="shrink-0" />
+                <span className={clsx("truncate", compacto && "md:hidden")}>
+                  {label}
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto border-t border-gold-200 pt-4 dark:border-carbon-700">
-          <p className="px-2 text-sm font-medium text-carbon-900 dark:text-gold-100">
-            {nombre}
-          </p>
-          <p className="px-2 text-xs text-carbon-500 dark:text-gold-100/50">
-            {rol}
-          </p>
-
-          <button
-            onClick={cerrarSesion}
-            className="focus-ring mt-3 flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-carbon-600 transition-colors hover:bg-gold-100 hover:text-signal-danger dark:text-gold-100/60 dark:hover:bg-carbon-800 dark:hover:text-signal-danger"
+        <div
+          className={clsx(
+            "border-t border-gold-200 pt-4 dark:border-carbon-700",
+            compacto && "md:text-center",
+          )}
+        >
+          <div className={clsx("px-2", compacto && "md:hidden")}>
+            <p className="truncate text-sm font-medium">{nombre}</p>
+            <p className="text-xs text-carbon-500 dark:text-gold-100/50">
+              {rol}
+            </p>
+          </div>
+          <span
+            className={clsx(
+              "hidden text-[10px] font-semibold text-carbon-500 dark:text-gold-100/50",
+              compacto && "md:block",
+            )}
           >
-            <LogOut size={16} strokeWidth={1.75} />
-            Cerrar sesión
-          </button>
-
-          <ThemeToggle />
+            {rol.slice(0, 3)}
+          </span>
         </div>
       </aside>
     </>
