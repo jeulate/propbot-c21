@@ -1,7 +1,11 @@
 import { Bot, InlineKeyboard, type Context } from "grammy";
-import { esAsesorAutorizado, obtenerAsesor, listarAsesores } from "@/lib/repositories/asesores";
-import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
+import {
+  esAsesorAutorizado,
+  obtenerAsesor,
+  listarAsesores,
+} from "@/lib/repositories/asesores";
 import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
+import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 import { calcularComisionCierre } from "@/lib/comisiones";
 import { crearCierre } from "@/lib/repositories/cierres";
 import {
@@ -18,7 +22,6 @@ import {
   validarMonto,
   validarTelefono,
   validarTexto,
-
 } from "@/lib/bot/validadores";
 import { buscarPropiedadPorId } from "@/lib/services/propiedades-c21";
 import { obtenerCuentaComision } from "@/lib/repositories/cuenta-comision";
@@ -36,8 +39,10 @@ const tecladoTipoTransaccion = new InlineKeyboard()
   .row()
   .text("Anticrético", "tipo:ANTICRÉTICO");
 
-const tecladoSiNo = new InlineKeyboard().text("✅ Sí", "si-no:SI").text("❌ No", "si-no:NO");
- const tecladoTipoAsesor = new InlineKeyboard()
+const tecladoSiNo = new InlineKeyboard()
+  .text("✅ Sí", "si-no:SI")
+  .text("❌ No", "si-no:NO");
+const tecladoTipoAsesor = new InlineKeyboard()
   .text("🏢 Asesor de la oficina", "tipo-asesor:INTERNO")
   .row()
   .text("🌐 Asesor externo", "tipo-asesor:EXTERNO");
@@ -71,17 +76,20 @@ const MENSAJE_AYUDA =
   "- *Teléfonos:* incluye código de país si aplica (ejemplo: +59170000000).\n\n" +
   "Al final verás un resumen completo para confirmar antes de enviar al panel.";
 
-
 function formatoBs(valor: number) {
   return `Bs ${new Intl.NumberFormat("es-BO", { maximumFractionDigits: 2 }).format(valor)}`;
 }
 
-function resolverRolRegistro(d: EstadoConversacion["datos"]): "CAPTADOR" | "COLOCADOR" | "AMBOS" {
+function resolverRolRegistro(
+  d: EstadoConversacion["datos"],
+): "CAPTADOR" | "COLOCADOR" | "AMBOS" {
   if (d.captadorEsRegistrante && d.colocadorEsRegistrante) return "AMBOS";
   if (d.captadorEsRegistrante) return "CAPTADOR";
   if (d.colocadorEsRegistrante) return "COLOCADOR";
 
-  throw new Error("El asesor registrante debe ser captador, colocador o ambos.");
+  throw new Error(
+    "El asesor registrante debe ser captador, colocador o ambos.",
+  );
 }
 
 async function requiereAutorizacion(ctx: Context): Promise<boolean> {
@@ -89,7 +97,7 @@ async function requiereAutorizacion(ctx: Context): Promise<boolean> {
   const autorizado = await esAsesorAutorizado(telegramId);
   if (!autorizado) {
     await ctx.reply(
-      "🚫 No estás autorizado para usar este bot.\n\nPide a un administrador de Century 21 Rita Quiroga que registre tu cuenta de Telegram."
+      "🚫 No estás autorizado para usar este bot.\n\nPide a un administrador de Century 21 Rita Quiroga que registre tu cuenta de Telegram.",
     );
     return false;
   }
@@ -109,7 +117,9 @@ bot.command("ayuda", async (ctx) => {
 bot.command("cancelar", async (ctx) => {
   const telegramId = String(ctx.from?.id ?? "");
   await limpiarEstado(telegramId);
-  await ctx.reply("❌ Registro en curso descartado. Usa /nuevo para empezar otra vez.");
+  await ctx.reply(
+    "❌ Registro en curso descartado. Usa /nuevo para empezar otra vez.",
+  );
 });
 
 bot.command("nuevo", async (ctx) => {
@@ -118,14 +128,15 @@ bot.command("nuevo", async (ctx) => {
   const asesor = await obtenerAsesor(telegramId);
   const estado = iniciarNuevoEstado();
 
-  estado.datos.asesorRegistranteNombre = asesor?.nombre ?? ctx.from?.first_name ?? "Desconocido";
+  estado.datos.asesorRegistranteNombre =
+    asesor?.nombre ?? ctx.from?.first_name ?? "Desconocido";
 
   await guardarEstado(telegramId, estado);
   await ctx.reply(
     "📝 Iniciaremos el registro del cierre.\n" +
       "El sistema calculará automáticamente la comisión que debe pagar la operación.\n\n" +
       "Si te equivocas, puedes usar /cancelar para volver a empezar.",
-    { parse_mode: "Markdown" }
+    { parse_mode: "Markdown" },
   );
   await ctx.reply(PREGUNTAS.ID, { parse_mode: "Markdown" });
 });
@@ -143,7 +154,9 @@ bot.callbackQuery(/^tipo:(.+)$/, async (ctx) => {
   estado.paso = "MONTO_TRANSACCION";
   await guardarEstado(telegramId, estado);
   await ctx.answerCallbackQuery();
-  await ctx.editMessageText(`🏷️ Tipo de transacción: *${valor}*`, { parse_mode: "Markdown" });
+  await ctx.editMessageText(`🏷️ Tipo de transacción: *${valor}*`, {
+    parse_mode: "Markdown",
+  });
   await ctx.reply(PREGUNTAS.MONTO_TRANSACCION, { parse_mode: "Markdown" });
 });
 
@@ -165,7 +178,9 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
       estado.paso = "COLOCADOR_ES_REGISTRANTE";
       await guardarEstado(telegramId, estado);
       await ctx.answerCallbackQuery();
-      await ctx.editMessageText("🧑‍💼 Captador: *Tú mismo*", { parse_mode: "Markdown" });
+      await ctx.editMessageText("🧑‍💼 Captador: *Tú mismo*", {
+        parse_mode: "Markdown",
+      });
       await ctx.reply(PREGUNTAS.COLOCADOR_ES_REGISTRANTE, {
         parse_mode: "Markdown",
         reply_markup: tecladoSiNo,
@@ -176,7 +191,9 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
     estado.paso = "CAPTADOR_INTERNO_O_EXTERNO";
     await guardarEstado(telegramId, estado);
     await ctx.answerCallbackQuery();
-    await ctx.editMessageText("🧑‍💼 Captador: *Otro asesor*", { parse_mode: "Markdown" });
+    await ctx.editMessageText("🧑‍💼 Captador: *Otro asesor*", {
+      parse_mode: "Markdown",
+    });
 
     await ctx.reply(PREGUNTAS.CAPTADOR_INTERNO_O_EXTERNO, {
       parse_mode: "Markdown",
@@ -190,10 +207,14 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
     if (esSi) {
       estado.datos.asesorColocadorId = telegramId;
       estado.datos.asesorColocadorNombre = estado.datos.asesorRegistranteNombre;
-      estado.paso = estado.datos.direccionInmueble ? "TIPO_TRANSACCION" : "DIRECCION_INMUEBLE";
+      estado.paso = estado.datos.direccionInmueble
+        ? "TIPO_TRANSACCION"
+        : "DIRECCION_INMUEBLE";
       await guardarEstado(telegramId, estado);
       await ctx.answerCallbackQuery();
-      await ctx.editMessageText("🤝 Colocador: *Tú mismo*", { parse_mode: "Markdown" });
+      await ctx.editMessageText("🤝 Colocador: *Tú mismo*", {
+        parse_mode: "Markdown",
+      });
       await avanzarConSiguientePregunta(ctx, estado);
       return;
     }
@@ -201,7 +222,9 @@ bot.callbackQuery(/^si-no:(SI|NO)$/, async (ctx) => {
     estado.paso = "COLOCADOR_INTERNO_O_EXTERNO";
     await guardarEstado(telegramId, estado);
     await ctx.answerCallbackQuery();
-    await ctx.editMessageText("🤝 Colocador: *Otro asesor*", { parse_mode: "Markdown" });
+    await ctx.editMessageText("🤝 Colocador: *Otro asesor*", {
+      parse_mode: "Markdown",
+    });
     await ctx.reply(PREGUNTAS.COLOCADOR_INTERNO_O_EXTERNO, {
       parse_mode: "Markdown",
       reply_markup: tecladoTipoAsesor,
@@ -260,7 +283,10 @@ bot.callbackQuery(/^tipo-asesor:(INTERNO|EXTERNO)$/, async (ctx) => {
       });
 
       await ctx.reply("Selecciona el asesor colocador:", {
-        reply_markup: await crearTecladoSeleccionAsesor("COLOCADOR", telegramId),
+        reply_markup: await crearTecladoSeleccionAsesor(
+          "COLOCADOR",
+          telegramId,
+        ),
       });
       return;
     }
@@ -294,7 +320,9 @@ bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
   const asesorId = ctx.match![2];
 
   const pasoEsperado =
-    rol === "CAPTADOR" ? "CAPTADOR_INTERNO_O_EXTERNO" : "COLOCADOR_INTERNO_O_EXTERNO";
+    rol === "CAPTADOR"
+      ? "CAPTADOR_INTERNO_O_EXTERNO"
+      : "COLOCADOR_INTERNO_O_EXTERNO";
 
   if (estado.paso !== pasoEsperado) {
     await ctx.answerCallbackQuery();
@@ -302,6 +330,7 @@ bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
   }
 
   const asesor = await obtenerAsesor(asesorId);
+  const configuracion = await obtenerConfiguracionComisiones();
 
   if (!asesor || !asesor.activo) {
     await ctx.answerCallbackQuery();
@@ -312,7 +341,8 @@ bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
   if (rol === "CAPTADOR") {
     estado.datos.asesorCaptadorId = asesor.telegramId;
     estado.datos.asesorCaptadorNombre = asesor.nombre;
-    estado.datos.asesorCaptadorOficina = "Century 21 Rita Quiroga";
+    estado.datos.asesorCaptadorOficina = configuracion.nombreOficina ?? "";
+    estado.datos.asesorCaptadorTelefono = asesor.celular ?? "";
     estado.paso = "COLOCADOR_ES_REGISTRANTE";
 
     await guardarEstado(telegramId, estado);
@@ -330,8 +360,11 @@ bot.callbackQuery(/^asesor:(CAPTADOR|COLOCADOR):(.+)$/, async (ctx) => {
 
   estado.datos.asesorColocadorId = asesor.telegramId;
   estado.datos.asesorColocadorNombre = asesor.nombre;
-  estado.datos.asesorColocadorOficina = "Century 21 Rita Quiroga";
-  estado.paso = estado.datos.direccionInmueble ? "TIPO_TRANSACCION" : "DIRECCION_INMUEBLE";
+  estado.datos.asesorColocadorOficina = configuracion.nombreOficina ?? "";
+  estado.datos.asesorColocadorTelefono = asesor.celular ?? "";
+  estado.paso = estado.datos.direccionInmueble
+    ? "TIPO_TRANSACCION"
+    : "DIRECCION_INMUEBLE";
 
   await guardarEstado(telegramId, estado);
   await ctx.answerCallbackQuery();
@@ -355,7 +388,7 @@ bot.callbackQuery(/^comision:(SI|NO)$/, async (ctx) => {
   if (ctx.match![1] === "NO") {
     await limpiarEstado(telegramId);
     await ctx.editMessageText(
-      "❌ Registro cancelado porque la comisión no fue confirmada. Usa /nuevo para recalcular y volver a registrar."
+      "❌ Registro cancelado porque la comisión no fue confirmada. Usa /nuevo para recalcular y volver a registrar.",
     );
     return;
   }
@@ -374,12 +407,16 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
 
   if (ctx.match![1] === "NO") {
     await limpiarEstado(telegramId);
-    await ctx.editMessageText("❌ Registro descartado. Usa /nuevo para empezar de nuevo.");
+    await ctx.editMessageText(
+      "❌ Registro descartado. Usa /nuevo para empezar de nuevo.",
+    );
     return;
   }
 
   if (!estado) {
-    await ctx.editMessageText("⚠️ La sesión expiró. Usa /nuevo para empezar de nuevo.");
+    await ctx.editMessageText(
+      "⚠️ La sesión expiró. Usa /nuevo para empezar de nuevo.",
+    );
     return;
   }
 
@@ -412,16 +449,18 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
       comprobantePagoNombreArchivo: d.comprobantePagoNombreArchivo,
       comprobantePagoMimeType: d.comprobantePagoMimeType,
       registradoPorTelegramId: telegramId,
-      registradoPorNombre: d.asesorRegistranteNombre ?? ctx.from?.first_name ?? "Desconocido",
+      registradoPorNombre:
+        d.asesorRegistranteNombre ?? ctx.from?.first_name ?? "Desconocido",
     });
 
     await limpiarEstado(telegramId);
     await ctx.editMessageText(
-      `✅ ¡Cierre *${cierreCreado.id}* registrado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\n📸 El comprobante fue recibido y el cierre quedó pendiente de revisión administrativa.\n\nUsa /nuevo para registrar otro cierre.`,      
-      { parse_mode: "Markdown" }
+      `✅ ¡Cierre *${cierreCreado.id}* registrado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\n📸 El comprobante fue recibido y el cierre quedó pendiente de revisión administrativa.\n\nUsa /nuevo para registrar otro cierre.`,
+      { parse_mode: "Markdown" },
     );
   } catch (error) {
-    const mensaje = error instanceof Error ? error.message : "Error desconocido";
+    const mensaje =
+      error instanceof Error ? error.message : "Error desconocido";
     await ctx.editMessageText(`⚠️ No se pudo guardar el cierre: ${mensaje}`);
   }
 });
@@ -474,7 +513,7 @@ bot.on("message:text", async (ctx) => {
 
       if (!propiedad) {
         return ctx.reply(
-          "⚠️ No encontré una propiedad activa con ese ID en c21.com.bo.\n\nPor favor verifica el ID e intenta nuevamente."
+          "⚠️ No encontré una propiedad activa con ese ID en c21.com.bo.\n\nPor favor verifica el ID e intenta nuevamente.",
         );
       }
 
@@ -488,9 +527,9 @@ bot.on("message:text", async (ctx) => {
       }
 
       await ctx.reply(
-        `✅ Propiedad encontrada:\n\n${propiedad.titulo}\n${propiedad.url}`
+        `✅ Propiedad encontrada:\n\n${propiedad.titulo}\n${propiedad.url}`,
       );
-      
+
       estado.paso = "FECHA_CIERRE";
       break;
     }
@@ -542,7 +581,9 @@ bot.on("message:text", async (ctx) => {
       const r = validarTelefono(texto);
       if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
       estado.datos.asesorColocadorTelefono = r.value;
-      estado.paso = estado.datos.direccionInmueble ? "TIPO_TRANSACCION" : "DIRECCION_INMUEBLE";
+      estado.paso = estado.datos.direccionInmueble
+        ? "TIPO_TRANSACCION"
+        : "DIRECCION_INMUEBLE";
       break;
     }
     case "DIRECCION_INMUEBLE": {
@@ -558,15 +599,20 @@ bot.on("message:text", async (ctx) => {
       estado.datos.montoTransaccion = r.value;
 
       const asesor = await obtenerAsesor(telegramId);
-      if (!asesor) return ctx.reply("⚠️ No se encontró tu perfil de asesor. Contacta a un administrador.");
+      if (!asesor)
+        return ctx.reply(
+          "⚠️ No se encontró tu perfil de asesor. Contacta a un administrador.",
+        );
       const categoria = await obtenerCategoriaAsesor(asesor.categoriaId);
       if (!categoria || !categoria.activo) {
-        return ctx.reply("⚠️ Tu categoría está inactiva. Contacta a administración para actualizarla.");
+        return ctx.reply(
+          "⚠️ Tu categoría está inactiva. Contacta a administración para actualizarla.",
+        );
       }
       const config = await obtenerConfiguracionComisiones();
 
       const esMismo =
-         estado.datos.asesorCaptadorId === estado.datos.asesorColocadorId;
+        estado.datos.asesorCaptadorId === estado.datos.asesorColocadorId;
 
       const comision = calcularComisionCierre({
         montoTransaccion: r.value,
@@ -577,9 +623,12 @@ bot.on("message:text", async (ctx) => {
       });
 
       estado.datos.porcentajeBaseComision = comision.porcentajeBaseComision;
-      estado.datos.porcentajeOficinaNacionalAplicado = comision.porcentajeOficinaNacionalAplicado;
-      estado.datos.porcentajeOficinaLocalAplicado = comision.porcentajeOficinaLocalAplicado;
-      estado.datos.porcentajeCategoriaAplicado = comision.porcentajeCategoriaAplicado;
+      estado.datos.porcentajeOficinaNacionalAplicado =
+        comision.porcentajeOficinaNacionalAplicado;
+      estado.datos.porcentajeOficinaLocalAplicado =
+        comision.porcentajeOficinaLocalAplicado;
+      estado.datos.porcentajeCategoriaAplicado =
+        comision.porcentajeCategoriaAplicado;
       estado.datos.montoPagoOficinaNacional = comision.montoPagoOficinaNacional;
       estado.datos.montoPagoOficinaLocal = comision.montoPagoOficinaLocal;
       estado.datos.montoPagoRealAsesor = comision.montoPagoRealAsesor;
@@ -624,12 +673,21 @@ bot.on("message:text", async (ctx) => {
   await avanzarConSiguientePregunta(ctx, estado);
 });
 
-async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversacion) {
-  if (estado.paso === "CAPTADOR_ES_REGISTRANTE" || estado.paso === "COLOCADOR_ES_REGISTRANTE") {
-    await ctx.reply(PREGUNTAS[estado.paso], { parse_mode: "Markdown", reply_markup: tecladoSiNo });
+async function avanzarConSiguientePregunta(
+  ctx: Context,
+  estado: EstadoConversacion,
+) {
+  if (
+    estado.paso === "CAPTADOR_ES_REGISTRANTE" ||
+    estado.paso === "COLOCADOR_ES_REGISTRANTE"
+  ) {
+    await ctx.reply(PREGUNTAS[estado.paso], {
+      parse_mode: "Markdown",
+      reply_markup: tecladoSiNo,
+    });
     return;
   }
- 
+
   if (estado.paso === "CAPTADOR_INTERNO_O_EXTERNO") {
     const telegramId = String(ctx.from?.id ?? "");
     await ctx.reply(PREGUNTAS.CAPTADOR_INTERNO_O_EXTERNO, {
@@ -674,10 +732,13 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
       "¿Confirmas que este monto es correcto?",
     ].join("\n");
 
-    await ctx.reply(detalle, { parse_mode: "Markdown", reply_markup: tecladoConfirmacionComision });
+    await ctx.reply(detalle, {
+      parse_mode: "Markdown",
+      reply_markup: tecladoConfirmacionComision,
+    });
     return;
   }
-  
+
   if (estado.paso === "COMPROBANTE_PAGO") {
     const montoDeposito = formatoBs(estado.datos.montoComision ?? 0);
 
@@ -722,10 +783,11 @@ async function avanzarConSiguientePregunta(ctx: Context, estado: EstadoConversac
 
 async function crearTecladoSeleccionAsesor(
   rol: "CAPTADOR" | "COLOCADOR",
-  telegramIdRegistrante: string
+  telegramIdRegistrante: string,
 ) {
-  const asesores = (await listarAsesores())
-    .filter((a) => a.activo && a.telegramId !== telegramIdRegistrante);
+  const asesores = (await listarAsesores()).filter(
+    (a) => a.activo && a.telegramId !== telegramIdRegistrante,
+  );
 
   const teclado = new InlineKeyboard();
 
@@ -744,7 +806,10 @@ function escaparHtml(valor: unknown): string {
     .replace(/>/g, "&gt;");
 }
 
-async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacion) {
+async function enviarResumenConfirmacion(
+  ctx: Context,
+  estado: EstadoConversacion,
+) {
   const d = estado.datos;
 
   const resumen = [
@@ -755,31 +820,43 @@ async function enviarResumenConfirmacion(ctx: Context, estado: EstadoConversacio
     d.urlPropiedad ? `🔗 URL: ${escaparHtml(d.urlPropiedad)}` : "",
     `📅 Fecha cierre: ${escaparHtml(d.fechaCierre)}`,
     `🧑‍💼 Asesor captador: ${escaparHtml(d.asesorCaptadorNombre)}`,
-    d.asesorCaptadorOficina ? `🏢 Oficina captador: ${escaparHtml(d.asesorCaptadorOficina)}` : "",
-    d.asesorCaptadorTelefono ? `📞 Tel. captador: ${escaparHtml(d.asesorCaptadorTelefono)}` : "",
+    d.asesorCaptadorOficina
+      ? `🏢 Oficina captador: ${escaparHtml(d.asesorCaptadorOficina)}`
+      : "",
+    d.asesorCaptadorTelefono
+      ? `📞 Tel. captador: ${escaparHtml(d.asesorCaptadorTelefono)}`
+      : "",
     `🤝 Asesor colocador: ${escaparHtml(d.asesorColocadorNombre)}`,
-    d.asesorColocadorOficina ? `🏢 Oficina colocador: ${escaparHtml(d.asesorColocadorOficina)}` : "",
-    d.asesorColocadorTelefono ? `📞 Tel. colocador: ${escaparHtml(d.asesorColocadorTelefono)}` : "",
+    d.asesorColocadorOficina
+      ? `🏢 Oficina colocador: ${escaparHtml(d.asesorColocadorOficina)}`
+      : "",
+    d.asesorColocadorTelefono
+      ? `📞 Tel. colocador: ${escaparHtml(d.asesorColocadorTelefono)}`
+      : "",
     `📍 Dirección: ${escaparHtml(d.direccionInmueble)}`,
     `🏷️ Tipo: ${escaparHtml(d.tipoTransaccion)}`,
     `💰 Monto transacción: ${escaparHtml(formatoBs(d.montoTransaccion ?? 0))}`,
     `📊 Comisión base: ${escaparHtml(
-      formatoBs(((d.montoTransaccion ?? 0) * (d.porcentajeBaseComision ?? 0)) / 100)
+      formatoBs(
+        ((d.montoTransaccion ?? 0) * (d.porcentajeBaseComision ?? 0)) / 100,
+      ),
     )} (${escaparHtml(d.porcentajeBaseComision ?? 0)}%)`,
     `🏢 Oficina nacional (${escaparHtml(d.porcentajeOficinaNacionalAplicado ?? 0)}%): ${escaparHtml(
-      formatoBs(d.montoPagoOficinaNacional ?? 0)
+      formatoBs(d.montoPagoOficinaNacional ?? 0),
     )}`,
     `🏬 Oficina local (${escaparHtml(d.porcentajeOficinaLocalAplicado ?? 0)}%): ${escaparHtml(
-      formatoBs(d.montoPagoOficinaLocal ?? 0)
+      formatoBs(d.montoPagoOficinaLocal ?? 0),
     )}`,
     `💵 Comisión registrada: ${escaparHtml(formatoBs(d.montoComision ?? 0))}`,
     `👤 Pago real asesor (${escaparHtml(d.porcentajeCategoriaAplicado ?? 0)}%): ${escaparHtml(
-      formatoBs(d.montoPagoRealAsesor ?? 0)
+      formatoBs(d.montoPagoRealAsesor ?? 0),
     )}`,
     `👤 Propietario: ${escaparHtml(d.nombrePropietario)} (${escaparHtml(d.telPropietario)})`,
     `👤 Cliente: ${escaparHtml(d.nombreCliente)} (${escaparHtml(d.telCliente)})`,
     `🔒 Exclusiva: ${d.exclusiva ? "Sí" : "No"}`,
-    d.comprobantePagoFileId ? "📸 Comprobante de pago: Recibido" : "📸 Comprobante de pago: Pendiente",
+    d.comprobantePagoFileId
+      ? "📸 Comprobante de pago: Recibido"
+      : "📸 Comprobante de pago: Pendiente",
     "",
     "Si los datos son correctos, presiona <b>Guardar cierre</b>. Si detectas un error, presiona <b>Cancelar y empezar de nuevo</b>.",
   ]
