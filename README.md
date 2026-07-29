@@ -8,7 +8,8 @@ Sistema web para registrar, revisar y analizar cierres inmobiliarios de **Centur
 - Rama estable y de producción: `main`.
 - Integración continua mediante GitHub Actions y validaciones de Vercel.
 - Módulo de gestión de usuarios y perfiles incorporado en el PR #1.
-- Último cierre documentado: commit `3eb4b16`.
+- Gestión integral de asesores y estructura organizacional incorporada en el PR #2.
+- Último cierre documentado en `main`: commit de merge `517bc8e`.
 
 ## Objetivos
 
@@ -87,9 +88,24 @@ flowchart TD
 ### Asesores
 
 - Lista autorizada de asesores que pueden utilizar el bot.
-- Alta, consulta y baja mediante el dashboard.
-- Asociación mediante el identificador de Telegram.
-- Categorías de asesor.
+- Registro desde `/dashboard/asesores/crear`.
+- Perfil administrativo individual en `/dashboard/asesores/[telegramId]`.
+- Asociación única mediante el identificador de Telegram.
+- Registro y edición de nombre, celular y estado.
+- Carga y actualización de fotografía privada.
+- Vista previa y progreso durante la carga de la fotografía.
+- Oficina global visible en el perfil.
+- Gestión independiente de categoría, Team y Equipo Triple 21.
+- Creación y administración de agrupaciones organizacionales.
+- Activación y desactivación desde el listado o el perfil.
+- Búsqueda por nombre, Telegram ID, celular o categoría.
+- Paginación del listado para volúmenes superiores a diez asesores.
+- Tabla administrativa en escritorio y tarjetas compactas en móvil.
+- Edición desplegable en móvil, manteniendo una sola tarjeta abierta.
+- Confirmaciones visuales para registro, edición, fotografía y cambios organizacionales.
+- Redirección al listado actualizado después de completar el registro y la carga opcional de fotografía.
+- Conservación de datos organizacionales históricos en cierres y exportaciones.
+- Integración de la estructura del asesor con el flujo del bot.
 - Captaciones y metas mensuales.
 
 ### Metas y gestión comercial
@@ -117,7 +133,7 @@ flowchart TD
 
 ### Fotografías privadas
 
-Las fotografías se almacenan en Vercel Blob con acceso privado. La aplicación no expone directamente el archivo: las rutas protegidas validan la sesión antes de obtener y entregar la imagen.
+Las fotografías de usuarios y asesores se almacenan en Vercel Blob con acceso privado. La aplicación no expone directamente el archivo: las rutas protegidas validan la sesión y los permisos antes de obtener y entregar la imagen.
 
 ## Roles y permisos
 
@@ -157,6 +173,7 @@ El flujo conversacional conserva el mapeo del formato de control de cierres:
 app/
 ├── api/
 │   ├── asesores/                # Gestión de asesores autorizados
+│   ├── agrupaciones-asesores/   # Teams y Equipos Triple 21
 │   ├── auth/                    # Inicio y cierre de sesión
 │   ├── captaciones-mensuales/   # Captaciones por periodo
 │   ├── categorias/              # Categorías de asesores
@@ -169,7 +186,7 @@ app/
 │   ├── telegram/                # Webhook y acceso controlado a archivos
 │   └── usuarios/                # Administración de usuarios y avatares
 ├── dashboard/
-│   ├── asesores/
+│   ├── asesores/                # Listado, alta y perfil individual
 │   ├── cierres/
 │   ├── configuracion/
 │   ├── perfil/
@@ -180,6 +197,10 @@ app/
 
 components/
 ├── dashboard/                   # Shell, encabezado y menú de usuario
+├── formulario-asesor.tsx        # Alta y edición de asesores
+├── gestion-asesores.tsx         # Listado, búsqueda y paginación
+├── gestion-agrupaciones-asesores.tsx
+├── gestion-oficina.tsx
 ├── gestion-*.tsx                # Componentes de módulos administrativos
 ├── perfil-usuario*.tsx          # Perfil personal y perfil administrativo
 ├── tabla-cierres.tsx
@@ -188,7 +209,7 @@ components/
 
 lib/
 ├── bot/                         # Conversación, estado y validadores
-├── repositories/                # Acceso a datos por dominio
+├── repositories/                # Asesores, agrupaciones, cierres y otros dominios
 ├── services/                    # Integraciones y servicios
 ├── auth.ts                      # Sesiones JWT
 ├── comisiones.ts
@@ -208,18 +229,20 @@ types/
 
 ## Rutas del dashboard
 
-| Ruta                             | Descripción                               |
-| -------------------------------- | ----------------------------------------- |
-| `/login`                         | Inicio de sesión                          |
-| `/dashboard`                     | Métricas y resumen general                |
-| `/dashboard/cierres`             | Listado de cierres                        |
-| `/dashboard/cierres/[id]`        | Detalle de un cierre                      |
-| `/dashboard/asesores`            | Administración de asesores                |
-| `/dashboard/configuracion`       | Metas, categorías, comisiones y objetivos |
-| `/dashboard/perfil`              | Perfil del usuario autenticado            |
-| `/dashboard/usuarios`            | Listado de usuarios                       |
-| `/dashboard/usuarios/crear`      | Creación de usuarios                      |
-| `/dashboard/usuarios/[username]` | Perfil administrativo de un usuario       |
+| Ruta                               | Descripción                               |
+| ---------------------------------- | ----------------------------------------- |
+| `/login`                           | Inicio de sesión                          |
+| `/dashboard`                       | Métricas y resumen general                |
+| `/dashboard/cierres`               | Listado de cierres                        |
+| `/dashboard/cierres/[id]`          | Detalle de un cierre                      |
+| `/dashboard/asesores`              | Listado, búsqueda y gestión de asesores   |
+| `/dashboard/asesores/crear`        | Registro completo de un asesor            |
+| `/dashboard/asesores/[telegramId]` | Perfil administrativo de un asesor        |
+| `/dashboard/configuracion`         | Metas, categorías, comisiones y objetivos |
+| `/dashboard/perfil`                | Perfil del usuario autenticado            |
+| `/dashboard/usuarios`              | Listado de usuarios                       |
+| `/dashboard/usuarios/crear`        | Creación de usuarios                      |
+| `/dashboard/usuarios/[username]`   | Perfil administrativo de un usuario       |
 
 ## Endpoints principales
 
@@ -232,6 +255,9 @@ types/
 | `/api/cierres/exportar`           | Generar la exportación Excel                  |
 | `/api/asesores`                   | Listar y crear asesores                       |
 | `/api/asesores/[telegramId]`      | Operar sobre un asesor                        |
+| `/api/asesores/[telegramId]/foto` | Gestionar la fotografía privada del asesor    |
+| `/api/agrupaciones-asesores`      | Listar y crear agrupaciones organizacionales  |
+| `/api/agrupaciones-asesores/[id]` | Actualizar o eliminar una agrupación          |
 | `/api/categorias`                 | Administrar categorías                        |
 | `/api/metas-mensuales`            | Administrar metas                             |
 | `/api/captaciones-mensuales`      | Administrar captaciones                       |
@@ -413,6 +439,7 @@ Los cambios destinados a producción se integran mediante Pull Request hacia `ma
 Los repositorios de `lib/repositories/` aíslan el acceso a Redis por dominio:
 
 - Asesores.
+- Agrupaciones de asesores: Teams y Equipos Triple 21.
 - Cierres.
 - Usuarios.
 - Categorías.
@@ -453,6 +480,22 @@ Este diseño evita concentrar toda la persistencia en las rutas y facilita evolu
 - Revisa las respuestas de `/api/perfil/avatar`.
 - No expongas directamente el pathname privado.
 
+### La fotografía de un asesor no carga
+
+- Confirma que el asesor fue creado antes de iniciar la carga.
+- Revisa las respuestas de `/api/asesores/[telegramId]/foto`.
+- Verifica que el usuario autenticado tenga permisos para gestionar asesores.
+- Confirma `BLOB_READ_WRITE_TOKEN` y la vinculación de Vercel Blob.
+- No expongas directamente el pathname privado almacenado.
+
+### Los cambios de un asesor no aparecen
+
+- Confirma que la solicitud API finalizó correctamente.
+- Verifica el mensaje de confirmación mostrado por la interfaz.
+- Actualiza la búsqueda o cambia de página si el asesor no pertenece a la página visible.
+- Revisa que categoría, Team y Equipo Triple 21 se administren como datos independientes.
+- Confirma que el usuario autenticado tenga permisos para gestionar asesores.
+
 ### Los cambios de un usuario no aparecen
 
 - Confirma que la solicitud API finalizó correctamente.
@@ -467,6 +510,16 @@ Este diseño evita concentrar toda la persistencia en las rutas y facilita evolu
 - [x] Persistencia en Redis.
 - [x] Dashboard autenticado.
 - [x] Gestión de asesores.
+- [x] Registro completo de asesores con celular, categoría y agrupaciones.
+- [x] Perfil administrativo individual del asesor.
+- [x] Fotografías privadas de asesores mediante Vercel Blob.
+- [x] Gestión independiente de Team y Equipo Triple 21.
+- [x] Configuración y visualización de la oficina global.
+- [x] Búsqueda y paginación de asesores.
+- [x] Listado móvil compacto con edición desplegable.
+- [x] Confirmaciones visuales para altas y modificaciones de asesores.
+- [x] Conservación de información organizacional histórica en cierres y exportaciones.
+- [x] Integración de la organización del asesor con el bot.
 - [x] Revisión de cierres y exportación Excel.
 - [x] Métricas y gráficos.
 - [x] Metas, captaciones, objetivos y comisiones.
@@ -486,7 +539,8 @@ Este diseño evita concentrar toda la persistencia en las rutas y facilita evolu
 - [ ] Incorporar pruebas unitarias para validadores, cálculos y permisos.
 - [ ] Incorporar pruebas de integración para autenticación y rutas API.
 - [ ] Añadir pruebas end-to-end de los flujos críticos.
-- [ ] Registrar auditoría detallada de cambios administrativos.
+- [ ] Implementar una bitácora de auditoría persistente para cambios administrativos.
+- [ ] Registrar en la bitácora el usuario responsable, fecha, acción y valores anteriores y posteriores.
 - [ ] Añadir filtros avanzados y búsquedas persistentes.
 - [ ] Automatizar reportes mensuales.
 - [ ] Fortalecer observabilidad, alertas y trazabilidad de errores.
