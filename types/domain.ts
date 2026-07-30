@@ -120,6 +120,8 @@ export interface CategoriaAsesor {
 
 export interface ConfiguracionComisiones {
   porcentajeOficinaNacional: number;
+  porcentajeOficinaTeam: number;
+  porcentajeTeamLeader: number;
   nombreOficina?: string;
   actualizadoEn: string;
 }

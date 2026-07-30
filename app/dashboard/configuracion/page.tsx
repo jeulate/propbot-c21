@@ -16,6 +16,7 @@ import { obtenerObjetivosOficina } from "@/lib/repositories/objetivos-oficina";
 import { listarAgrupaciones } from "@/lib/repositories/agrupaciones-asesor";
 import { GestionAgrupacionesAsesores } from "@/components/gestion-agrupaciones-asesores";
 import { GestionOficina } from "@/components/gestion-oficina";
+import { GestionComisionesTeam } from "@/components/gestion-comisiones-team";
 
 export default async function ConfiguracionPage() {
   const sesion = await obtenerSesionActual();
@@ -48,6 +49,10 @@ export default async function ConfiguracionPage() {
         porcentajeOficinaNacionalInicial={
           configuracion.porcentajeOficinaNacional
         }
+      />
+      <GestionComisionesTeam
+        porcentajeOficinaTeamInicial={configuracion.porcentajeOficinaTeam}
+        porcentajeTeamLeaderInicial={configuracion.porcentajeTeamLeader}
       />
       <GestionOficina nombreInicial={configuracion.nombreOficina ?? ""} />
       <GestionAgrupacionesAsesores
