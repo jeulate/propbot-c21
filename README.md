@@ -6,10 +6,15 @@ Sistema web para registrar, revisar y analizar cierres inmobiliarios de **Centur
 
 - Aplicación desplegada en Vercel.
 - Rama estable y de producción: `main`.
-- Integración continua mediante GitHub Actions y validaciones de Vercel.
+- Integración continua mediante GitHub Actions y despliegue automatizado en Vercel.
 - Módulo de gestión de usuarios y perfiles incorporado en el PR #1.
 - Gestión integral de asesores y estructura organizacional incorporada en el PR #2.
-- Último cierre documentado en `main`: commit de merge `517bc8e`.
+- Configuración dinámica de categorías y porcentajes Team incorporada en el PR #3.
+- Cálculo de comisiones Team incorporado en el PR #4.
+- Persistencia y comprobantes separados para cierres Team incorporados en el PR #5.
+- Flujo conversacional Team de Telegram incorporado en los PR #6 y #7.
+- Flujo Team validado funcionalmente y desplegado en producción.
+- Último cierre documentado en `main`: commit de merge `440d044`.
 
 ## Objetivos
 
@@ -61,6 +66,7 @@ flowchart TD
 | Contraseñas       | bcryptjs                                |
 | Exportación       | ExcelJS                                 |
 | Hosting           | Vercel                                  |
+| Pruebas unitarias | `node:test`, `node:assert` y `tsx`      |
 | CI/CD             | GitHub Actions y Vercel                 |
 
 ## Funcionalidades
@@ -84,6 +90,23 @@ flowchart TD
 - Visualización de comprobantes de pago.
 - Exportación a Excel.
 - Cálculos asociados a comisiones.
+
+### Cierres Team
+
+- Detección automática de asesores asociados a un Team activo.
+- Aplicación de la categoría Team y sus porcentajes configurados.
+- Cálculo independiente del pago correspondiente a la oficina.
+- Cálculo independiente del pago correspondiente al Team Leader.
+- Cálculo del monto total de comisión que debe declararse.
+- Conservación del Team, Team Leader, categoría y porcentajes aplicados como información histórica del cierre.
+- Confirmación previa de los importes calculados desde Telegram.
+- Solicitud independiente del comprobante de pago a la oficina.
+- Presentación de la cuenta bancaria de la oficina y del monto exacto que debe depositarse.
+- Solicitud independiente del comprobante de pago al Team Leader.
+- Presentación del nombre del Team Leader y del importe correspondiente.
+- Resumen final diferenciado para cierres individuales y cierres Team.
+- Validación administrativa que exige ambos comprobantes antes de verificar un cierre Team.
+- Compatibilidad con el flujo individual existente.
 
 ### Asesores
 
@@ -167,6 +190,17 @@ El flujo conversacional conserva el mapeo del formato de control de cierres:
 - Existencia de exclusiva.
 - Comprobantes y datos complementarios definidos por el flujo.
 
+Cuando el asesor pertenece a un Team, también se conservan:
+
+- Tipo de cálculo de comisión: individual o Team.
+- Nombre e identificador del Team aplicado.
+- Nombre e identificador del Team Leader aplicado.
+- Categoría Team y porcentajes vigentes al momento del cierre.
+- Pago calculado para la oficina.
+- Pago calculado para el Team Leader.
+- Comprobante de la oficina.
+- Comprobante del Team Leader.
+
 ## Estructura principal
 
 ```text
@@ -212,7 +246,9 @@ lib/
 ├── repositories/                # Asesores, agrupaciones, cierres y otros dominios
 ├── services/                    # Integraciones y servicios
 ├── auth.ts                      # Sesiones JWT
+├── comisiones-team.ts           # Cálculo de cierres y distribución Team
 ├── comisiones.ts
+├── comprobantes-cierre.ts       # Reglas de comprobantes y cambio de estado
 ├── fechas.ts
 └── redis.ts
 
@@ -221,6 +257,10 @@ scripts/
 ├── delete-webhook.ts
 ├── seed-admin.ts
 └── set-webhook.ts
+
+tests/
+├── comisiones-team.test.ts      # Cálculos y validaciones de comisión Team
+└── comprobantes-cierre.test.ts  # Reglas para comprobantes y estados
 
 types/
 ├── domain.ts
@@ -391,6 +431,8 @@ No ejecutes polling y webhook simultáneamente con el mismo bot.
 | `npm run bot:webhook:set`    | Registra el webhook de producción         |
 | `npm run bot:webhook:delete` | Elimina el webhook actual                 |
 
+Las pruebas unitarias Team existentes utilizan el runner nativo `node:test` con `node:assert/strict` y se ejecutan a través de `tsx`. La incorporación del comando `npm test` y su ejecución automática en CI corresponden a la siguiente fase técnica.
+
 ## Validaciones antes de un commit
 
 ```bash
@@ -420,6 +462,8 @@ Los cambios destinados a producción se integran mediante Pull Request hacia `ma
 - Build de producción.
 - Verificaciones de Vercel.
 - Revisión de conflictos y archivos incluidos.
+
+El workflow de CI actual todavía no ejecuta las pruebas unitarias de `tests/`. Este control se incorporará en la fase `test/team-closing-automation`.
 
 ## Seguridad
 
@@ -523,6 +567,15 @@ Este diseño evita concentrar toda la persistencia en las rutas y facilita evolu
 - [x] Revisión de cierres y exportación Excel.
 - [x] Métricas y gráficos.
 - [x] Metas, captaciones, objetivos y comisiones.
+- [x] Configuración dinámica de categorías y porcentajes Team.
+- [x] Cálculo independiente de comisión para oficina y Team Leader.
+- [x] Persistencia histórica de Team, Team Leader, categoría y porcentajes aplicados.
+- [x] Comprobantes separados para oficina y Team Leader.
+- [x] Validación de ambos comprobantes antes de verificar un cierre Team.
+- [x] Flujo completo de cierres Team mediante Telegram.
+- [x] Resumen financiero diferenciado para cierres Team.
+- [x] Pruebas unitarias de cálculo Team y reglas de comprobantes escritas con `node:test`.
+- [x] Validación funcional del flujo Team en producción.
 - [x] Tema claro y oscuro.
 - [x] Navegación adaptable y colapsable.
 - [x] Gestión de usuarios por roles.
@@ -535,8 +588,11 @@ Este diseño evita concentrar toda la persistencia en las rutas y facilita evolu
 
 ### Próximas mejoras recomendadas
 
+- [ ] Añadir el script `npm test` mediante `tsx --test tests/*.test.ts`.
+- [ ] Ejecutar `npm test` automáticamente en GitHub Actions antes del build.
+- [ ] Confirmar la ejecución local y en CI de todas las pruebas Team existentes.
 - [ ] Sustituir los elementos `<img>` pendientes por `next/image` cuando sea compatible con el flujo privado.
-- [ ] Incorporar pruebas unitarias para validadores, cálculos y permisos.
+- [ ] Ampliar las pruebas unitarias a validadores generales, cálculos individuales y permisos.
 - [ ] Incorporar pruebas de integración para autenticación y rutas API.
 - [ ] Añadir pruebas end-to-end de los flujos críticos.
 - [ ] Implementar una bitácora de auditoría persistente para cambios administrativos.
@@ -559,6 +615,22 @@ El repositorio utiliza `main` como rama estable:
 7. Esperar las verificaciones.
 8. Integrar el PR.
 9. Actualizar `main` local y eliminar la rama finalizada.
+
+### Siguiente fase planificada
+
+Rama recomendada:
+
+```text
+test/team-closing-automation
+```
+
+Alcance:
+
+1. Añadir el script `test` a `package.json` usando el runner nativo de Node a través de `tsx`.
+2. Ejecutar las dos suites Team existentes localmente.
+3. Añadir `npm test` al workflow `.github/workflows/ci.yml`.
+4. Validar lint, tipos, pruebas y build.
+5. Actualizar este README para marcar la automatización como completada después del merge.
 
 Ejemplo:
 
