@@ -14,7 +14,7 @@ Sistema web para registrar, revisar y analizar cierres inmobiliarios de **Centur
 - Persistencia y comprobantes separados para cierres Team incorporados en el PR #5.
 - Flujo conversacional Team de Telegram incorporado en los PR #6 y #7.
 - Flujo Team validado funcionalmente y desplegado en producción.
-- Último cierre documentado en `main`: commit de merge `440d044`.
+- Último estado documentado en `main`: commit `6362705`.
 
 ## Objetivos
 
@@ -426,16 +426,18 @@ No ejecutes polling y webhook simultáneamente con el mismo bot.
 | `npm run start`              | Inicia la compilación generada            |
 | `npm run lint`               | Ejecuta ESLint                            |
 | `npm run typecheck`          | Valida TypeScript sin emitir archivos     |
+| `npm test`                   | Ejecuta las pruebas automatizadas         |
 | `npm run seed:admin`         | Crea o actualiza el administrador inicial |
 | `npm run bot:dev`            | Ejecuta el bot en polling local           |
 | `npm run bot:webhook:set`    | Registra el webhook de producción         |
 | `npm run bot:webhook:delete` | Elimina el webhook actual                 |
 
-Las pruebas unitarias Team existentes utilizan el runner nativo `node:test` con `node:assert/strict` y se ejecutan a través de `tsx`. La incorporación del comando `npm test` y su ejecución automática en CI corresponden a la siguiente fase técnica.
+Las pruebas unitarias Team utilizan el runner nativo `node:test` con `node:assert/strict` y se ejecutan mediante `tsx`. El comando `npm test` ejecuta los 10 casos existentes y forma parte del workflow de integración continua.
 
 ## Validaciones antes de un commit
 
 ```bash
+npm test
 npm run lint
 npm run typecheck
 npm run build
@@ -457,13 +459,14 @@ Actualmente pueden aparecer advertencias no bloqueantes de Next.js por el uso de
 
 Los cambios destinados a producción se integran mediante Pull Request hacia `main`. Antes del merge deben pasar, como mínimo:
 
+- Pruebas automatizadas.
 - Lint.
 - Validación de tipos.
 - Build de producción.
 - Verificaciones de Vercel.
 - Revisión de conflictos y archivos incluidos.
 
-El workflow de CI actual todavía no ejecuta las pruebas unitarias de `tests/`. Este control se incorporará en la fase `test/team-closing-automation`.
+El workflow de CI ejecuta `npm test` después de instalar las dependencias y antes de lint, typecheck y build. Esto permite detener el pipeline si alguna regla de cálculo Team o de comprobantes presenta una regresión.
 
 ## Seguridad
 
@@ -575,6 +578,9 @@ Este diseño evita concentrar toda la persistencia en las rutas y facilita evolu
 - [x] Flujo completo de cierres Team mediante Telegram.
 - [x] Resumen financiero diferenciado para cierres Team.
 - [x] Pruebas unitarias de cálculo Team y reglas de comprobantes escritas con `node:test`.
+- [x] Script `npm test` configurado mediante `tsx --test tests/*.test.ts`.
+- [x] Ejecución automática de pruebas incorporada en GitHub Actions antes de lint, typecheck y build.
+- [x] Validación local de los 10 casos Team existentes.
 - [x] Validación funcional del flujo Team en producción.
 - [x] Tema claro y oscuro.
 - [x] Navegación adaptable y colapsable.
@@ -588,9 +594,7 @@ Este diseño evita concentrar toda la persistencia en las rutas y facilita evolu
 
 ### Próximas mejoras recomendadas
 
-- [ ] Añadir el script `npm test` mediante `tsx --test tests/*.test.ts`.
-- [ ] Ejecutar `npm test` automáticamente en GitHub Actions antes del build.
-- [ ] Confirmar la ejecución local y en CI de todas las pruebas Team existentes.
+- [ ] Confirmar la ejecución remota de las pruebas Team en GitHub Actions al publicar el Pull Request.
 - [ ] Sustituir los elementos `<img>` pendientes por `next/image` cuando sea compatible con el flujo privado.
 - [ ] Ampliar las pruebas unitarias a validadores generales, cálculos individuales y permisos.
 - [ ] Incorporar pruebas de integración para autenticación y rutas API.
@@ -616,21 +620,21 @@ El repositorio utiliza `main` como rama estable:
 8. Integrar el PR.
 9. Actualizar `main` local y eliminar la rama finalizada.
 
-### Siguiente fase planificada
+### Automatización de pruebas Team
 
-Rama recomendada:
+Rama de implementación:
 
 ```text
 test/team-closing-automation
 ```
 
-Alcance:
+Alcance implementado:
 
-1. Añadir el script `test` a `package.json` usando el runner nativo de Node a través de `tsx`.
-2. Ejecutar las dos suites Team existentes localmente.
-3. Añadir `npm test` al workflow `.github/workflows/ci.yml`.
-4. Validar lint, tipos, pruebas y build.
-5. Actualizar este README para marcar la automatización como completada después del merge.
+1. Script `npm test` configurado con el runner nativo de Node mediante `tsx`.
+2. Dos archivos de pruebas y 10 casos Team ejecutados correctamente.
+3. Ejecución de `npm test` incorporada al workflow `.github/workflows/ci.yml`.
+4. Validaciones locales de pruebas, lint, tipos y build completadas.
+5. Verificación remota de GitHub Actions pendiente al publicar el Pull Request.
 
 Ejemplo:
 
