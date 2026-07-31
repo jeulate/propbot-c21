@@ -34,6 +34,8 @@ export type PasoFormulario =
   | "TEL_CLIENTE"
   | "EXCLUSIVA"
   | "COMPROBANTE_PAGO"
+  | "COMPROBANTE_OFICINA"
+  | "COMPROBANTE_TEAM_LEADER"
   | "CONFIRMACION";
 
 export const ORDEN_PASOS: PasoFormulario[] = [
@@ -60,6 +62,8 @@ export const ORDEN_PASOS: PasoFormulario[] = [
   "TEL_CLIENTE",
   "EXCLUSIVA",
   "COMPROBANTE_PAGO",
+  "COMPROBANTE_OFICINA",
+  "COMPROBANTE_TEAM_LEADER",
   "CONFIRMACION",
 ];
 
@@ -91,6 +95,12 @@ export interface DatosParciales {
   montoPagoOficinaNacional?: number;
   montoPagoOficinaLocal?: number;
   montoPagoRealAsesor?: number;
+  tipoCalculoComision?: "INDIVIDUAL" | "TEAM";
+  teamNombreAplicado?: string;
+  teamLeaderNombreAplicado?: string;
+  porcentajeOficinaTeamAplicado?: number;
+  porcentajeTeamLeaderAplicado?: number;
+  montoPagoTeamLeader?: number;
   tipoCambio?: number;
   nombrePropietario?: string;
   telPropietario?: string;
@@ -102,6 +112,12 @@ export interface DatosParciales {
   comprobantePagoTipo?: "photo" | "document";
   comprobantePagoNombreArchivo?: string;
   comprobantePagoMimeType?: string;
+  comprobanteOficinaFileId?: string;
+  comprobanteOficinaFileUniqueId?: string;
+  comprobanteOficinaTipo?: "photo" | "document";
+  comprobanteTeamLeaderFileId?: string;
+  comprobanteTeamLeaderFileUniqueId?: string;
+  comprobanteTeamLeaderTipo?: "photo" | "document";
 }
 
 export interface EstadoConversacion {
@@ -161,5 +177,7 @@ export const PREGUNTAS: Record<PasoFormulario, string> = {
   TEL_CLIENTE: "📞 ¿*Teléfono del cliente*?",
   EXCLUSIVA: "🔒 ¿Esta operación fue en *exclusiva*?",
   COMPROBANTE_PAGO: "📸 Adjunta una *imagen del comprobante de pago de la comisión*.\n\nDebe verse claramente el monto pagado.",
+  COMPROBANTE_OFICINA: "📸 Adjunta el comprobante de pago a la oficina.",
+  COMPROBANTE_TEAM_LEADER: "📸 Adjunta el comprobante de pago al Team Leader.",
   CONFIRMACION: "✅ Revisa el resumen del cierre antes de guardar:",
 };

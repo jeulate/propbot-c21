@@ -7,6 +7,8 @@ import {
 import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 import { calcularComisionCierre } from "@/lib/comisiones";
+import { calcularComisionCierreTeam } from "@/lib/comisiones-team";
+import { obtenerAgrupacion } from "@/lib/repositories/agrupaciones-asesor";
 import { crearCierre } from "@/lib/repositories/cierres";
 import {
   guardarEstado,
@@ -448,6 +450,12 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
       comprobantePagoTipo: d.comprobantePagoTipo,
       comprobantePagoNombreArchivo: d.comprobantePagoNombreArchivo,
       comprobantePagoMimeType: d.comprobantePagoMimeType,
+      comprobanteOficinaFileId: d.comprobanteOficinaFileId,
+      comprobanteOficinaFileUniqueId: d.comprobanteOficinaFileUniqueId,
+      comprobanteOficinaTipo: d.comprobanteOficinaTipo,
+      comprobanteTeamLeaderFileId: d.comprobanteTeamLeaderFileId,
+      comprobanteTeamLeaderFileUniqueId: d.comprobanteTeamLeaderFileUniqueId,
+      comprobanteTeamLeaderTipo: d.comprobanteTeamLeaderTipo,
       registradoPorTelegramId: telegramId,
       registradoPorNombre:
         d.asesorRegistranteNombre ?? ctx.from?.first_name ?? "Desconocido",
@@ -455,7 +463,7 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
 
     await limpiarEstado(telegramId);
     await ctx.editMessageText(
-      `✅ ¡Cierre *${cierreCreado.id}* registrado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\n📸 El comprobante fue recibido y el cierre quedó pendiente de revisión administrativa.\n\nUsa /nuevo para registrar otro cierre.`,
+      `✅ ¡Cierre *${cierreCreado.id}* registrado correctamente!\n\nComisión registrada: *${formatoBs(d.montoComision ?? 0)}*\n\n${d.tipoCalculoComision === "TEAM" ? "📸 Los comprobantes de oficina y Team Leader fueron recibidos" : "📸 El comprobante fue recibido"} y el cierre quedó pendiente de revisión administrativa.\n\nUsa /nuevo para registrar otro cierre.`,
       { parse_mode: "Markdown" },
     );
   } catch (error) {
@@ -467,25 +475,40 @@ bot.callbackQuery(/^confirmar:(SI|NO)$/, async (ctx) => {
 
 bot.on("message:photo", async (ctx) => {
   if (!(await requiereAutorizacion(ctx))) return;
-
   const telegramId = String(ctx.from?.id ?? "");
   const estado = await obtenerEstado(telegramId);
-
-  if (!estado || estado.paso !== "COMPROBANTE_PAGO") {
+  const pasosComprobante = [
+    "COMPROBANTE_PAGO",
+    "COMPROBANTE_OFICINA",
+    "COMPROBANTE_TEAM_LEADER",
+  ];
+  if (!estado || !pasosComprobante.includes(estado.paso)) {
     await ctx.reply("Usa /nuevo para iniciar el registro de un cierre.");
     return;
   }
 
-  const fotos = ctx.message.photo;
-  const fotoMayorResolucion = fotos[fotos.length - 1];
-
-  estado.datos.comprobantePagoFileId = fotoMayorResolucion.file_id;
-  estado.datos.comprobantePagoFileUniqueId = fotoMayorResolucion.file_unique_id;
-  estado.datos.comprobantePagoTipo = "photo";
+  const foto = ctx.message.photo[ctx.message.photo.length - 1];
+  if (estado.paso === "COMPROBANTE_OFICINA") {
+    estado.datos.comprobanteOficinaFileId = foto.file_id;
+    estado.datos.comprobanteOficinaFileUniqueId = foto.file_unique_id;
+    estado.datos.comprobanteOficinaTipo = "photo";
+    estado.paso = "COMPROBANTE_TEAM_LEADER";
+    await guardarEstado(telegramId, estado);
+    await ctx.reply("✅ Comprobante de oficina recibido.");
+    await ctx.reply(PREGUNTAS.COMPROBANTE_TEAM_LEADER, { parse_mode: "Markdown" });
+    return;
+  }
+  if (estado.paso === "COMPROBANTE_TEAM_LEADER") {
+    estado.datos.comprobanteTeamLeaderFileId = foto.file_id;
+    estado.datos.comprobanteTeamLeaderFileUniqueId = foto.file_unique_id;
+    estado.datos.comprobanteTeamLeaderTipo = "photo";
+  } else {
+    estado.datos.comprobantePagoFileId = foto.file_id;
+    estado.datos.comprobantePagoFileUniqueId = foto.file_unique_id;
+    estado.datos.comprobantePagoTipo = "photo";
+  }
   estado.paso = "CONFIRMACION";
-
   await guardarEstado(telegramId, estado);
-
   await ctx.reply("✅ Comprobante recibido correctamente.");
   await enviarResumenConfirmacion(ctx, estado);
 });
@@ -614,25 +637,55 @@ bot.on("message:text", async (ctx) => {
       const esMismo =
         estado.datos.asesorCaptadorId === estado.datos.asesorColocadorId;
 
-      const comision = calcularComisionCierre({
-        montoTransaccion: r.value,
-        tipoTransaccion: estado.datos.tipoTransaccion!,
-        esCaptadorYColocadorMismoAsesor: esMismo,
-        porcentajeOficinaNacional: config.porcentajeOficinaNacional,
-        porcentajeCategoriaAsesor: categoria.porcentajeComision,
-      });
-
-      estado.datos.porcentajeBaseComision = comision.porcentajeBaseComision;
-      estado.datos.porcentajeOficinaNacionalAplicado =
-        comision.porcentajeOficinaNacionalAplicado;
-      estado.datos.porcentajeOficinaLocalAplicado =
-        comision.porcentajeOficinaLocalAplicado;
-      estado.datos.porcentajeCategoriaAplicado =
-        comision.porcentajeCategoriaAplicado;
-      estado.datos.montoPagoOficinaNacional = comision.montoPagoOficinaNacional;
-      estado.datos.montoPagoOficinaLocal = comision.montoPagoOficinaLocal;
-      estado.datos.montoPagoRealAsesor = comision.montoPagoRealAsesor;
-      estado.datos.montoComision = comision.montoComisionTotal;
+      if (asesor.teamId) {
+        const team = await obtenerAgrupacion(asesor.teamId);
+        if (!team || team.tipo !== "TEAM" || !team.activo || !team.responsableTelegramId) {
+          return ctx.reply("⚠️ Tu Team no está activo o no tiene Team Leader asignado.");
+        }
+        const teamLeader = await obtenerAsesor(team.responsableTelegramId);
+        const configTeam = config.comisionesTeamPorCategoria.find(
+          (item) => item.categoriaId === categoria.id,
+        );
+        if (!teamLeader?.activo || !configTeam) {
+          return ctx.reply("⚠️ No existe una configuración Team válida para tu categoría.");
+        }
+        const comision = calcularComisionCierreTeam({
+          montoTransaccion: r.value,
+          tipoTransaccion: estado.datos.tipoTransaccion!,
+          esCaptadorYColocadorMismoAsesor: esMismo,
+          porcentajeOficinaTeam: configTeam.porcentajeOficina,
+          porcentajeTeamLeader: configTeam.porcentajeTeamLeader,
+        });
+        estado.datos.tipoCalculoComision = "TEAM";
+        estado.datos.teamNombreAplicado = team.nombre;
+        estado.datos.teamLeaderNombreAplicado = teamLeader.nombre;
+        estado.datos.porcentajeOficinaNacionalAplicado = 0;
+        estado.datos.porcentajeOficinaLocalAplicado = comision.porcentajeOficinaTeamAplicado;
+        estado.datos.porcentajeOficinaTeamAplicado = comision.porcentajeOficinaTeamAplicado;
+        estado.datos.porcentajeTeamLeaderAplicado = comision.porcentajeTeamLeaderAplicado;
+        estado.datos.montoPagoOficinaNacional = 0;
+        estado.datos.montoPagoOficinaLocal = comision.montoPagoOficinaTeam;
+        estado.datos.montoPagoTeamLeader = comision.montoPagoTeamLeader;
+        estado.datos.montoPagoRealAsesor = comision.montoPagoRealAsesor;
+        estado.datos.montoComision = comision.montoComisionTotal;
+      } else {
+        const comision = calcularComisionCierre({
+          montoTransaccion: r.value,
+          tipoTransaccion: estado.datos.tipoTransaccion!,
+          esCaptadorYColocadorMismoAsesor: esMismo,
+          porcentajeOficinaNacional: config.porcentajeOficinaNacional,
+          porcentajeCategoriaAsesor: categoria.porcentajeComision,
+        });
+        estado.datos.tipoCalculoComision = "INDIVIDUAL";
+        estado.datos.porcentajeBaseComision = comision.porcentajeBaseComision;
+        estado.datos.porcentajeOficinaNacionalAplicado = comision.porcentajeOficinaNacionalAplicado;
+        estado.datos.porcentajeOficinaLocalAplicado = comision.porcentajeOficinaLocalAplicado;
+        estado.datos.porcentajeCategoriaAplicado = comision.porcentajeCategoriaAplicado;
+        estado.datos.montoPagoOficinaNacional = comision.montoPagoOficinaNacional;
+        estado.datos.montoPagoOficinaLocal = comision.montoPagoOficinaLocal;
+        estado.datos.montoPagoRealAsesor = comision.montoPagoRealAsesor;
+        estado.datos.montoComision = comision.montoComisionTotal;
+      }
       estado.paso = "CONFIRMAR_COMISION";
       break;
     }
@@ -662,7 +715,9 @@ bot.on("message:text", async (ctx) => {
       const r = validarTelefono(texto);
       if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
       estado.datos.telCliente = r.value;
-      estado.paso = "COMPROBANTE_PAGO";
+      estado.paso = estado.datos.tipoCalculoComision === "TEAM"
+        ? "COMPROBANTE_OFICINA"
+        : "COMPROBANTE_PAGO";
       break;
     }
     default: {

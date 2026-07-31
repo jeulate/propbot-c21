@@ -49,7 +49,9 @@ export async function notificarCierreVerificado(cierre: Cierre): Promise<void> {
     `🏷️ Tipo: ${cierre.tipoTransaccion}`,
     `💰 Comisión registrada: ${formatoBs(cierre.montoComision)}`,
     "",
-    "El registro ya se encuentra aprobado en el panel de administración.",
+    cierre.tipoCalculoComision === "TEAM"
+      ? "Los comprobantes de oficina y Team Leader fueron validados. El proceso quedó aprobado."
+      : "El comprobante fue validado y el registro quedó aprobado.",
   ].join("\n");
 
   const enviado = await enviarMensajeTelegram({
@@ -66,18 +68,21 @@ export async function notificarCierreRechazado(cierre: Cierre): Promise<void> {
   const mensaje = [
     "❌ *Tu cierre fue rechazado por administración.*",
     "",
-    `🆔 ID inmueble: ${cierre.idInmueble ?? cierre.id}`,
+    `📋 ID inmueble: ${cierre.idInmueble ?? cierre.id}`,
     `🏷️ Tipo: ${cierre.tipoTransaccion}`,
     `💰 Comisión registrada: ${formatoBs(cierre.montoComision)}`,
     "",
-    "Por favor revisa los datos y vuelve a registrar el cierre con la información correcta.",
+    `Motivo: ${cierre.motivoRechazo ?? "No especificado."}`,
+    "",
+    cierre.tipoCalculoComision === "TEAM"
+      ? "Revisa los comprobantes de oficina y Team Leader antes de volver a registrar el cierre."
+      : "Revisa la información antes de volver a registrar el cierre.",
   ].join("\n");
 
   const enviado = await enviarMensajeTelegram({
     chatId: cierre.registradoPorTelegramId,
     texto: mensaje,
   });
-
   if (!enviado) {
     console.warn(`No fue posible notificar al asesor del cierre rechazado ${cierre.id}.`);
   }
