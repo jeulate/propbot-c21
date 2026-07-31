@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint-build:
-    name: Lint, type-check y build
+    name: Tests, lint, type-check y build
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +23,9 @@ jobs:
 
       - name: Instalar dependencias
         run: npm ci
+
+      - name: Pruebas automatizadas
+        run: npm test
 
       - name: Lint
         run: npm run lint

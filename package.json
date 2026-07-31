@@ -12,7 +12,8 @@
     "seed:admin": "tsx scripts/seed-admin.ts",
     "bot:webhook:set": "tsx scripts/set-webhook.ts",
     "bot:webhook:delete": "tsx scripts/delete-webhook.ts",
-    "bot:dev": "tsx scripts/bot-polling-dev.ts"
+    "bot:dev": "tsx scripts/bot-polling-dev.ts",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@vercel/blob": "^2.6.1",
