@@ -494,8 +494,8 @@ bot.on("message:photo", async (ctx) => {
     estado.datos.comprobanteOficinaTipo = "photo";
     estado.paso = "COMPROBANTE_TEAM_LEADER";
     await guardarEstado(telegramId, estado);
-    await ctx.reply("✅ Comprobante de oficina recibido.");
-    await ctx.reply(PREGUNTAS.COMPROBANTE_TEAM_LEADER, { parse_mode: "Markdown" });
+    await ctx.reply("✅ Comprobante de pago a la oficina recibido.");
+    await avanzarConSiguientePregunta(ctx, estado);
     return;
   }
   if (estado.paso === "COMPROBANTE_TEAM_LEADER") {
@@ -639,15 +639,24 @@ bot.on("message:text", async (ctx) => {
 
       if (asesor.teamId) {
         const team = await obtenerAgrupacion(asesor.teamId);
-        if (!team || team.tipo !== "TEAM" || !team.activo || !team.responsableTelegramId) {
-          return ctx.reply("⚠️ Tu Team no está activo o no tiene Team Leader asignado.");
+        if (
+          !team ||
+          team.tipo !== "TEAM" ||
+          !team.activo ||
+          !team.responsableTelegramId
+        ) {
+          return ctx.reply(
+            "⚠️ Tu Team no está activo o no tiene Team Leader asignado.",
+          );
         }
         const teamLeader = await obtenerAsesor(team.responsableTelegramId);
         const configTeam = config.comisionesTeamPorCategoria.find(
           (item) => item.categoriaId === categoria.id,
         );
         if (!teamLeader?.activo || !configTeam) {
-          return ctx.reply("⚠️ No existe una configuración Team válida para tu categoría.");
+          return ctx.reply(
+            "⚠️ No existe una configuración Team válida para tu categoría.",
+          );
         }
         const comision = calcularComisionCierreTeam({
           montoTransaccion: r.value,
@@ -659,10 +668,14 @@ bot.on("message:text", async (ctx) => {
         estado.datos.tipoCalculoComision = "TEAM";
         estado.datos.teamNombreAplicado = team.nombre;
         estado.datos.teamLeaderNombreAplicado = teamLeader.nombre;
+        estado.datos.porcentajeBaseComision = comision.porcentajeBaseComision;
         estado.datos.porcentajeOficinaNacionalAplicado = 0;
-        estado.datos.porcentajeOficinaLocalAplicado = comision.porcentajeOficinaTeamAplicado;
-        estado.datos.porcentajeOficinaTeamAplicado = comision.porcentajeOficinaTeamAplicado;
-        estado.datos.porcentajeTeamLeaderAplicado = comision.porcentajeTeamLeaderAplicado;
+        estado.datos.porcentajeOficinaLocalAplicado =
+          comision.porcentajeOficinaTeamAplicado;
+        estado.datos.porcentajeOficinaTeamAplicado =
+          comision.porcentajeOficinaTeamAplicado;
+        estado.datos.porcentajeTeamLeaderAplicado =
+          comision.porcentajeTeamLeaderAplicado;
         estado.datos.montoPagoOficinaNacional = 0;
         estado.datos.montoPagoOficinaLocal = comision.montoPagoOficinaTeam;
         estado.datos.montoPagoTeamLeader = comision.montoPagoTeamLeader;
@@ -678,10 +691,14 @@ bot.on("message:text", async (ctx) => {
         });
         estado.datos.tipoCalculoComision = "INDIVIDUAL";
         estado.datos.porcentajeBaseComision = comision.porcentajeBaseComision;
-        estado.datos.porcentajeOficinaNacionalAplicado = comision.porcentajeOficinaNacionalAplicado;
-        estado.datos.porcentajeOficinaLocalAplicado = comision.porcentajeOficinaLocalAplicado;
-        estado.datos.porcentajeCategoriaAplicado = comision.porcentajeCategoriaAplicado;
-        estado.datos.montoPagoOficinaNacional = comision.montoPagoOficinaNacional;
+        estado.datos.porcentajeOficinaNacionalAplicado =
+          comision.porcentajeOficinaNacionalAplicado;
+        estado.datos.porcentajeOficinaLocalAplicado =
+          comision.porcentajeOficinaLocalAplicado;
+        estado.datos.porcentajeCategoriaAplicado =
+          comision.porcentajeCategoriaAplicado;
+        estado.datos.montoPagoOficinaNacional =
+          comision.montoPagoOficinaNacional;
         estado.datos.montoPagoOficinaLocal = comision.montoPagoOficinaLocal;
         estado.datos.montoPagoRealAsesor = comision.montoPagoRealAsesor;
         estado.datos.montoComision = comision.montoComisionTotal;
@@ -715,9 +732,10 @@ bot.on("message:text", async (ctx) => {
       const r = validarTelefono(texto);
       if (!r.ok) return ctx.reply(`⚠️ ${r.error}`);
       estado.datos.telCliente = r.value;
-      estado.paso = estado.datos.tipoCalculoComision === "TEAM"
-        ? "COMPROBANTE_OFICINA"
-        : "COMPROBANTE_PAGO";
+      estado.paso =
+        estado.datos.tipoCalculoComision === "TEAM"
+          ? "COMPROBANTE_OFICINA"
+          : "COMPROBANTE_PAGO";
       break;
     }
     default: {
@@ -770,22 +788,38 @@ async function avanzarConSiguientePregunta(
   }
   if (estado.paso === "CONFIRMAR_COMISION") {
     const d = estado.datos;
-    const detalle = [
-      " *Comisión calculada automáticamente*",
-      "",
-      `- Base de comisión aplicada: ${d.porcentajeBaseComision}%`,
-      /*`- Oficina Nacional (${d.porcentajeOficinaNacionalAplicado}%): ${formatoBs(
-        d.montoPagoOficinaNacional ?? 0
-      )}`,
-      `- Oficina local (${d.porcentajeOficinaLocalAplicado}%): ${formatoBs(
-        d.montoPagoOficinaLocal ?? 0
-      )}`,*/
-      `- Categoría asesor (${d.porcentajeCategoriaAplicado}%): ${formatoBs(d.montoPagoRealAsesor ?? 0)}`,
-      "",
-      `💵 *Comisión a registrar = ${formatoBs(d.montoComision ?? 0)}*`,
-      "",
-      "¿Confirmas que este monto es correcto?",
-    ].join("\n");
+
+    const detalle =
+      d.tipoCalculoComision === "TEAM"
+        ? [
+            "💼 *Comisión Team calculada automáticamente*",
+            "",
+            `🏢 *Pago de comisión a la oficina:* ${formatoBs(
+              d.montoPagoOficinaLocal ?? 0,
+            )}`,
+            `👤 *Pago de comisión al Team Leader:* ${formatoBs(
+              d.montoPagoTeamLeader ?? 0,
+            )}`,
+            "",
+            `💵 *Monto total a declarar:* ${formatoBs(d.montoComision ?? 0)}`,
+            "",
+            `Team: ${d.teamNombreAplicado ?? "No disponible"}`,
+            `Team Leader: ${d.teamLeaderNombreAplicado ?? "No disponible"}`,
+            "",
+            "¿Confirmas que estos montos son correctos?",
+          ].join("\n")
+        : [
+            "💼 *Comisión calculada automáticamente*",
+            "",
+            `- Base de comisión aplicada: ${d.porcentajeBaseComision}%`,
+            `- Categoría asesor (${d.porcentajeCategoriaAplicado}%): ${formatoBs(
+              d.montoPagoRealAsesor ?? 0,
+            )}`,
+            "",
+            `💵 *Comisión a registrar = ${formatoBs(d.montoComision ?? 0)}*`,
+            "",
+            "¿Confirmas que este monto es correcto?",
+          ].join("\n");
 
     await ctx.reply(detalle, {
       parse_mode: "Markdown",
@@ -820,6 +854,59 @@ async function avanzarConSiguientePregunta(
       `💰 *Monto a depositar:* ${montoDeposito}`,
       "",
       datosCuenta,
+      "",
+      "Debe verse claramente el monto pagado en el comprobante.",
+    ].join("\n");
+
+    await ctx.reply(mensaje, { parse_mode: "Markdown" });
+    return;
+  }
+
+  if (estado.paso === "COMPROBANTE_OFICINA") {
+    const montoOficina = formatoBs(estado.datos.montoPagoOficinaLocal ?? 0);
+    const cuentaComision = await obtenerCuentaComision();
+
+    const datosCuenta = cuentaComision
+      ? [
+          "🏦 *Datos para el depósito a la oficina:*",
+          "",
+          `Banco: ${cuentaComision.banco}`,
+          `Cuenta: ${cuentaComision.cuenta}`,
+          `Titular: ${cuentaComision.titular}`,
+          `NIT/CI: ${cuentaComision.nitCi}`,
+        ].join("\n")
+      : [
+          "⚠️ *Datos de cuenta de la oficina no configurados.*",
+          "",
+          "Comunícate con administración antes de realizar el depósito.",
+        ].join("\n");
+
+    const mensaje = [
+      "📸 Adjunta una *imagen del comprobante de pago a la oficina*.",
+      "",
+      `💰 *Monto a pagar a la oficina:* ${montoOficina}`,
+      "",
+      datosCuenta,
+      "",
+      "Debe verse claramente el monto pagado en el comprobante.",
+    ].join("\n");
+
+    await ctx.reply(mensaje, { parse_mode: "Markdown" });
+    return;
+  }
+
+  if (estado.paso === "COMPROBANTE_TEAM_LEADER") {
+    const montoTeamLeader = formatoBs(estado.datos.montoPagoTeamLeader ?? 0);
+
+    const mensaje = [
+      "📸 Adjunta una *imagen del comprobante de pago al Team Leader*.",
+      "",
+      `👤 *Team Leader:* ${
+        estado.datos.teamLeaderNombreAplicado ?? "No disponible"
+      }`,
+      `💰 *Monto a pagar al Team Leader:* ${montoTeamLeader}`,
+      "",
+      "Por ahora, coordina directamente con el Team Leader los datos de la transferencia.",
       "",
       "Debe verse claramente el monto pagado en el comprobante.",
     ].join("\n");
@@ -867,6 +954,52 @@ async function enviarResumenConfirmacion(
 ) {
   const d = estado.datos;
 
+  const detalleComisiones =
+    d.tipoCalculoComision === "TEAM"
+      ? [
+          `💰 Total declarado: ${escaparHtml(
+            formatoBs(d.montoTransaccion ?? 0),
+          )}`,
+          `👤 Comisión al Team Leader (${escaparHtml(
+            d.porcentajeTeamLeaderAplicado ?? 0,
+          )}%): ${escaparHtml(formatoBs(d.montoPagoTeamLeader ?? 0))}`,
+          `🏢 Comisión a la oficina (${escaparHtml(
+            d.porcentajeOficinaTeamAplicado ?? 0,
+          )}%): ${escaparHtml(formatoBs(d.montoPagoOficinaLocal ?? 0))}`,
+          `💵 Monto total a declarar: ${escaparHtml(
+            formatoBs(
+              (d.montoPagoTeamLeader ?? 0) + (d.montoPagoOficinaLocal ?? 0),
+            ),
+          )}`,
+          `👥 Team: ${escaparHtml(d.teamNombreAplicado ?? "No disponible")}`,
+          `🧑‍💼 Team Leader: ${escaparHtml(
+            d.teamLeaderNombreAplicado ?? "No disponible",
+          )}`,
+        ]
+      : [
+          `💰 Monto transacción: ${escaparHtml(
+            formatoBs(d.montoTransaccion ?? 0),
+          )}`,
+          `📊 Comisión base: ${escaparHtml(
+            formatoBs(
+              ((d.montoTransaccion ?? 0) * (d.porcentajeBaseComision ?? 0)) /
+                100,
+            ),
+          )} (${escaparHtml(d.porcentajeBaseComision ?? 0)}%)`,
+          `🏢 Oficina nacional (${escaparHtml(
+            d.porcentajeOficinaNacionalAplicado ?? 0,
+          )}%): ${escaparHtml(formatoBs(d.montoPagoOficinaNacional ?? 0))}`,
+          `🏬 Oficina local (${escaparHtml(
+            d.porcentajeOficinaLocalAplicado ?? 0,
+          )}%): ${escaparHtml(formatoBs(d.montoPagoOficinaLocal ?? 0))}`,
+          `💵 Comisión registrada: ${escaparHtml(
+            formatoBs(d.montoComision ?? 0),
+          )}`,
+          `👤 Pago real asesor (${escaparHtml(
+            d.porcentajeCategoriaAplicado ?? 0,
+          )}%): ${escaparHtml(formatoBs(d.montoPagoRealAsesor ?? 0))}`,
+        ];
+
   const resumen = [
     "✅ <b>Revisa el resumen del cierre:</b>",
     "",
@@ -890,28 +1023,24 @@ async function enviarResumenConfirmacion(
       : "",
     `📍 Dirección: ${escaparHtml(d.direccionInmueble)}`,
     `🏷️ Tipo: ${escaparHtml(d.tipoTransaccion)}`,
-    `💰 Monto transacción: ${escaparHtml(formatoBs(d.montoTransaccion ?? 0))}`,
-    `📊 Comisión base: ${escaparHtml(
-      formatoBs(
-        ((d.montoTransaccion ?? 0) * (d.porcentajeBaseComision ?? 0)) / 100,
-      ),
-    )} (${escaparHtml(d.porcentajeBaseComision ?? 0)}%)`,
-    `🏢 Oficina nacional (${escaparHtml(d.porcentajeOficinaNacionalAplicado ?? 0)}%): ${escaparHtml(
-      formatoBs(d.montoPagoOficinaNacional ?? 0),
-    )}`,
-    `🏬 Oficina local (${escaparHtml(d.porcentajeOficinaLocalAplicado ?? 0)}%): ${escaparHtml(
-      formatoBs(d.montoPagoOficinaLocal ?? 0),
-    )}`,
-    `💵 Comisión registrada: ${escaparHtml(formatoBs(d.montoComision ?? 0))}`,
-    `👤 Pago real asesor (${escaparHtml(d.porcentajeCategoriaAplicado ?? 0)}%): ${escaparHtml(
-      formatoBs(d.montoPagoRealAsesor ?? 0),
-    )}`,
+    ...detalleComisiones,
     `👤 Propietario: ${escaparHtml(d.nombrePropietario)} (${escaparHtml(d.telPropietario)})`,
     `👤 Cliente: ${escaparHtml(d.nombreCliente)} (${escaparHtml(d.telCliente)})`,
     `🔒 Exclusiva: ${d.exclusiva ? "Sí" : "No"}`,
-    d.comprobantePagoFileId
-      ? "📸 Comprobante de pago: Recibido"
-      : "📸 Comprobante de pago: Pendiente",
+    ...(d.tipoCalculoComision === "TEAM"
+      ? [
+          d.comprobanteOficinaFileId
+            ? "📸 Comprobante de oficina: Recibido"
+            : "📸 Comprobante de oficina: Pendiente",
+          d.comprobanteTeamLeaderFileId
+            ? "📸 Comprobante del Team Leader: Recibido"
+            : "📸 Comprobante del Team Leader: Pendiente",
+        ]
+      : [
+          d.comprobantePagoFileId
+            ? "📸 Comprobante de pago: Recibido"
+            : "📸 Comprobante de pago: Pendiente",
+        ]),
     "",
     "Si los datos son correctos, presiona <b>Guardar cierre</b>. Si detectas un error, presiona <b>Cancelar y empezar de nuevo</b>.",
   ]
