@@ -792,7 +792,7 @@ async function avanzarConSiguientePregunta(
     const detalle =
       d.tipoCalculoComision === "TEAM"
         ? [
-            "💼 *Comisión Team calculada automáticamente*",
+            "*Comisión Team calculada automáticamente*",
             "",
             `🏢 *Pago de comisión a la oficina:* ${formatoBs(
               d.montoPagoOficinaLocal ?? 0,
@@ -809,7 +809,7 @@ async function avanzarConSiguientePregunta(
             "¿Confirmas que estos montos son correctos?",
           ].join("\n")
         : [
-            "💼 *Comisión calculada automáticamente*",
+            "*Comisión calculada automáticamente*",
             "",
             `- Base de comisión aplicada: ${d.porcentajeBaseComision}%`,
             `- Categoría asesor (${d.porcentajeCategoriaAplicado}%): ${formatoBs(
@@ -868,7 +868,7 @@ async function avanzarConSiguientePregunta(
 
     const datosCuenta = cuentaComision
       ? [
-          "🏦 *Datos para el depósito a la oficina:*",
+          "*Datos para el depósito a la oficina:*",
           "",
           `Banco: ${cuentaComision.banco}`,
           `Cuenta: ${cuentaComision.cuenta}`,
