@@ -28,6 +28,22 @@ function nombreMes(mes: number): string {
   return MESES.find((item) => item.valor === mes)?.label ?? String(mes);
 }
 
+function formatearFechaHora(valor: string): string {
+  const fecha = new Date(valor);
+
+  if (Number.isNaN(fecha.getTime())) {
+    return "Fecha no disponible";
+  }
+
+  return new Intl.DateTimeFormat("es-BO", {
+    dateStyle: "short",
+    timeStyle: "medium",
+    timeZone: "America/La_Paz",
+  })
+    .format(fecha)
+    .replace(/[\u00A0\u202F]/g, " ");
+}
+
 export function GestionMetas({
   metasIniciales,
 }: {
@@ -185,7 +201,7 @@ export function GestionMetas({
                   {formatoBs(meta.montoObjetivo)}
                 </td>
                 <td className="px-4 py-3 text-xs text-carbon-500 dark:text-gold-100/40">
-                  {new Date(meta.actualizadoEn).toLocaleString("es-BO")}
+                  {formatearFechaHora(meta.actualizadoEn)}
                 </td>
               </tr>
             ))}

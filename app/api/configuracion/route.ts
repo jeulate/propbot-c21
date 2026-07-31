@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
   actualizarPorcentajeOficinaNacional,
-  actualizarPorcentajesTeam,
+  actualizarComisionesTeamPorCategoria,
   actualizarNombreOficina,
   obtenerConfiguracionComisiones,
 } from "@/lib/repositories/configuracion-comisiones";
@@ -33,36 +33,29 @@ const porcentaje = z.preprocess(
     }, "El porcentaje admite hasta dos decimales."),
 );
 
-const esquemaActualizar = z
+const comisionTeamCategoria = z
   .object({
-    porcentajeOficinaNacional: porcentaje.optional(),
-    porcentajeOficinaTeam: porcentaje.optional(),
-    porcentajeTeamLeader: porcentaje.optional(),
-    nombreOficina: z.string().trim().min(2).max(120).optional(),
+    categoriaId: z.string().trim().min(1, "La categoría es obligatoria."),
+    porcentajeOficina: porcentaje,
+    porcentajeTeamLeader: porcentaje,
   })
   .superRefine((datos, ctx) => {
-    const incluyeOficinaTeam = datos.porcentajeOficinaTeam !== undefined;
-    const incluyeTeamLeader = datos.porcentajeTeamLeader !== undefined;
-
-    if (incluyeOficinaTeam !== incluyeTeamLeader) {
+    if (datos.porcentajeOficina + datos.porcentajeTeamLeader > 100) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Debes enviar juntos los dos porcentajes de Team.",
-      });
-      return;
-    }
-
-    if (
-      incluyeOficinaTeam &&
-      incluyeTeamLeader &&
-      datos.porcentajeOficinaTeam! + datos.porcentajeTeamLeader! > 100
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La suma de los porcentajes de Team no puede superar 100.",
+        message: "La suma de Oficina y Team Leader no puede superar 100 %.",
       });
     }
   });
+
+const esquemaActualizar = z.object({
+  porcentajeOficinaNacional: porcentaje.optional(),
+  comisionesTeamPorCategoria: z
+    .array(comisionTeamCategoria)
+    .min(1, "Debes enviar al menos una categoría.")
+    .optional(),
+  nombreOficina: z.string().trim().min(2).max(120).optional(),
+});
 
 export async function GET() {
   const sesion = await obtenerSesionActual();
@@ -104,13 +97,9 @@ export async function PATCH(req: NextRequest) {
         parsed.data.porcentajeOficinaNacional,
       );
     }
-    if (
-      parsed.data.porcentajeOficinaTeam !== undefined &&
-      parsed.data.porcentajeTeamLeader !== undefined
-    ) {
-      configuracion = await actualizarPorcentajesTeam(
-        parsed.data.porcentajeOficinaTeam,
-        parsed.data.porcentajeTeamLeader,
+    if (parsed.data.comisionesTeamPorCategoria !== undefined) {
+      configuracion = await actualizarComisionesTeamPorCategoria(
+        parsed.data.comisionesTeamPorCategoria,
       );
     }
     if (parsed.data.nombreOficina !== undefined) {
