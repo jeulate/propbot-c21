@@ -84,4 +84,3 @@ test("acepta aprobación Team completa y rechazo motivado", () => {
     ),
   );
 });
-
