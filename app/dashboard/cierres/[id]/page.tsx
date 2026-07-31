@@ -35,7 +35,8 @@ async function rechazarCierre(formData: FormData) {
   "use server";
 
   const id = String(formData.get("id") ?? "");
-  await actualizarEstadoCierre(id, "RECHAZADO");
+  const motivoRechazo = String(formData.get("motivoRechazo") ?? "").trim();
+  await actualizarEstadoCierre(id, "RECHAZADO", motivoRechazo);
   const cierre = await obtenerCierre(id);
   if (cierre) await notificarCierreRechazado(cierre);
 
@@ -140,23 +141,55 @@ export default async function DetalleCierrePage({
               <ResumenMonto label="Monto transacción" valor={formatoBs(cierre.montoTransaccion)} />
               <ResumenMonto label="Comisión registrada" valor={formatoBs(cierre.montoComision)} destaque />
               <ResumenMonto label="Oficina nacional" valor={formatoBs(cierre.montoPagoOficinaNacional)} />
-              <ResumenMonto label="Oficina local" valor={formatoBs(cierre.montoPagoOficinaLocal)} />
+              <ResumenMonto
+                label={cierre.tipoCalculoComision === "TEAM" ? "Oficina" : "Oficina local"}
+                valor={formatoBs(cierre.montoPagoOficinaLocal)}
+              />
+              {cierre.tipoCalculoComision === "TEAM" && (
+                <ResumenMonto label="Team Leader" valor={formatoBs(cierre.montoPagoTeamLeader)} />
+              )}
               <ResumenMonto label="Pago real asesor" valor={formatoBs(cierre.montoPagoRealAsesor)} />
             </div>
 
-            <div className="mt-6 rounded-xl border border-gold-200 bg-gold-50 p-4 dark:border-carbon-700 dark:bg-carbon-900">
-              <p className="text-sm font-medium text-carbon-900 dark:text-gold-50">
-                Comprobante de pago
-              </p>
-
-              {cierre.comprobantePagoFileId ? (
+            {cierre.tipoCalculoComision === "TEAM" ? (
+              <div className="mt-6 space-y-4">
+                <div className="rounded-xl border border-gold-200 bg-gold-50 p-4 dark:border-carbon-700 dark:bg-carbon-900">
+                  <p className="text-sm font-semibold">Comprobante de oficina</p>
+                  {cierre.comprobanteOficinaFileId ? (
+                    <ComprobantePagoPreview fileId={cierre.comprobanteOficinaFileId} />
+                  ) : (
+                    <p className="mt-2 text-sm text-signal-danger">No se registró este comprobante.</p>
+                  )}
+                </div>
+                <div className="rounded-xl border border-gold-200 bg-gold-50 p-4 dark:border-carbon-700 dark:bg-carbon-900">
+                  <p className="text-sm font-semibold">
+                    Comprobante Team Leader: {cierre.teamLeaderNombreAplicado ?? "-"}
+                  </p>
+                  {cierre.comprobanteTeamLeaderFileId ? (
+                    <ComprobantePagoPreview fileId={cierre.comprobanteTeamLeaderFileId} />
+                  ) : (
+                    <p className="mt-2 text-sm text-signal-danger">No se registró este comprobante.</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-xl border border-gold-200 bg-gold-50 p-4 dark:border-carbon-700 dark:bg-carbon-900">
+                <p className="text-sm font-medium text-carbon-900 dark:text-gold-50">
+                  Comprobante de pago
+                </p>
+                {cierre.comprobantePagoFileId ? (
                   <ComprobantePagoPreview fileId={cierre.comprobantePagoFileId} />
                 ) : (
-                  <p className="mt-2 text-sm text-signal-danger">
-                    No se registró comprobante.
-                  </p>
+                  <p className="mt-2 text-sm text-signal-danger">No se registró comprobante.</p>
                 )}
-            </div>
+              </div>
+            )}
+
+            {cierre.motivoRechazo && (
+              <p className="mt-4 rounded-lg bg-signal-danger/10 p-3 text-sm text-signal-danger">
+                Motivo del rechazo: {cierre.motivoRechazo}
+              </p>
+            )}
 
             {puedeVerificar && (
               <AccionesValidacionCierre

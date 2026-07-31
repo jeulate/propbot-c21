@@ -34,6 +34,17 @@ export interface Cierre {
   montoPagoOficinaLocal: number;
   porcentajeCategoriaAplicado: number;
   montoPagoRealAsesor: number;
+  /** Fotografía histórica; opcional para cierres anteriores. */
+  tipoCalculoComision?: "INDIVIDUAL" | "TEAM";
+  categoriaIdAplicada?: string;
+  categoriaNombreAplicada?: string;
+  teamIdAplicado?: string;
+  teamNombreAplicado?: string;
+  teamLeaderTelegramIdAplicado?: string;
+  teamLeaderNombreAplicado?: string;
+  porcentajeOficinaTeamAplicado?: number;
+  porcentajeTeamLeaderAplicado?: number;
+  montoPagoTeamLeader?: number;
   tipoCambio: number; // T.C.
   nombrePropietario: string;
   telPropietario: string;
@@ -45,6 +56,18 @@ export interface Cierre {
   comprobantePagoTipo?: "photo" | "document";
   comprobantePagoNombreArchivo?: string;
   comprobantePagoMimeType?: string;
+  /** Comprobantes separados para cierres Team. */
+  comprobanteOficinaFileId?: string;
+  comprobanteOficinaFileUniqueId?: string;
+  comprobanteOficinaTipo?: "photo" | "document";
+  comprobanteOficinaNombreArchivo?: string;
+  comprobanteOficinaMimeType?: string;
+  comprobanteTeamLeaderFileId?: string;
+  comprobanteTeamLeaderFileUniqueId?: string;
+  comprobanteTeamLeaderTipo?: "photo" | "document";
+  comprobanteTeamLeaderNombreArchivo?: string;
+  comprobanteTeamLeaderMimeType?: string;
+  motivoRechazo?: string;
 
   // Metadatos de auditoría (no estaban en el Excel, necesarios para el sistema)
   registradoPorTelegramId: string;
@@ -71,6 +94,16 @@ export type CierreInput = Omit<
   | "montoPagoOficinaLocal"
   | "porcentajeCategoriaAplicado"
   | "montoPagoRealAsesor"
+  | "tipoCalculoComision"
+  | "categoriaIdAplicada"
+  | "categoriaNombreAplicada"
+  | "teamIdAplicado"
+  | "teamNombreAplicado"
+  | "teamLeaderTelegramIdAplicado"
+  | "teamLeaderNombreAplicado"
+  | "porcentajeOficinaTeamAplicado"
+  | "porcentajeTeamLeaderAplicado"
+  | "montoPagoTeamLeader"
 >;
 
 export type RolUsuarioAdmin = "ADMIN" | "SUPERVISOR" | "LECTOR";

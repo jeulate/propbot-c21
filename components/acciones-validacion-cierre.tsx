@@ -15,8 +15,10 @@ export function AccionesValidacionCierre({
   const router = useRouter();
   const [confirmarRechazo, setConfirmarRechazo] = useState(false);
   const [procesando, setProcesando] = useState(false);
+  const [motivoRechazo, setMotivoRechazo] = useState("");
 
   async function confirmarRechazoAction(formData: FormData) {
+    if (motivoRechazo.trim().length < 3) return;
     setProcesando(true);
     await rechazarAction(formData);
     setConfirmarRechazo(false);
@@ -57,6 +59,20 @@ export function AccionesValidacionCierre({
               Este cierre será marcado como rechazado y no contará en el dashboard, KPIs ni rankings.
             </p>
 
+            <label className="mt-4 block text-sm font-medium text-carbon-800 dark:text-gold-50">
+              Motivo del rechazo
+              <textarea
+                name="motivoRechazo"
+                form="form-rechazo-cierre"
+                required
+                minLength={3}
+                maxLength={500}
+                value={motivoRechazo}
+                onChange={(event) => setMotivoRechazo(event.target.value)}
+                className="focus-ring mt-2 min-h-24 w-full rounded-md border border-gold-300 bg-white p-3 text-sm dark:border-carbon-600 dark:bg-carbon-900"
+              />
+            </label>
+
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
@@ -67,11 +83,11 @@ export function AccionesValidacionCierre({
                 Cancelar
               </button>
 
-              <form action={confirmarRechazoAction} className="flex-1">
+              <form id="form-rechazo-cierre" action={confirmarRechazoAction} className="flex-1">
                 <input type="hidden" name="id" value={cierreId} />
                 <button
                   type="submit"
-                  disabled={procesando}
+                  disabled={procesando || motivoRechazo.trim().length < 3}
                   className="focus-ring w-full rounded-md bg-signal-danger px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
                 >
                   {procesando ? "Rechazando..." : "Sí, rechazar"}

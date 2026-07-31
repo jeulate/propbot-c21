@@ -4,6 +4,9 @@ import { obtenerAsesor } from "@/lib/repositories/asesores";
 import { obtenerCategoriaAsesor } from "@/lib/repositories/categorias-asesor";
 import { obtenerConfiguracionComisiones } from "@/lib/repositories/configuracion-comisiones";
 import { calcularComisionCierre } from "@/lib/comisiones";
+import { calcularComisionCierreTeam } from "@/lib/comisiones-team";
+import { obtenerAgrupacion } from "@/lib/repositories/agrupaciones-asesor";
+import { validarCambioEstadoCierre } from "@/lib/comprobantes-cierre";
 import { fechaHoraBoliviaISO } from "@/lib/fechas";
 import {
   estaDentroDelRango,
@@ -79,13 +82,92 @@ export async function crearCierre(
   const esCaptadorYColocadorMismoAsesor =
     input.asesorCaptadorId === input.asesorColocadorId;
 
-  const comision = calcularComisionCierre({
-    montoTransaccion: input.montoTransaccion,
-    tipoTransaccion: input.tipoTransaccion,
-    esCaptadorYColocadorMismoAsesor,
-    porcentajeOficinaNacional: configuracion.porcentajeOficinaNacional,
-    porcentajeCategoriaAsesor: categoria.porcentajeComision,
-  });
+  let camposComision: Pick<
+    Cierre,
+    | "montoComision"
+    | "porcentajeOficinaNacionalAplicado"
+    | "porcentajeOficinaLocalAplicado"
+    | "montoPagoOficinaNacional"
+    | "montoPagoOficinaLocal"
+    | "porcentajeCategoriaAplicado"
+    | "montoPagoRealAsesor"
+    | "tipoCalculoComision"
+    | "categoriaIdAplicada"
+    | "categoriaNombreAplicada"
+    | "teamIdAplicado"
+    | "teamNombreAplicado"
+    | "teamLeaderTelegramIdAplicado"
+    | "teamLeaderNombreAplicado"
+    | "porcentajeOficinaTeamAplicado"
+    | "porcentajeTeamLeaderAplicado"
+    | "montoPagoTeamLeader"
+  >;
+
+  if (asesor.teamId) {
+    const team = await obtenerAgrupacion(asesor.teamId);
+    if (!team || team.tipo !== "TEAM" || !team.activo) {
+      throw new Error("El Team asignado al asesor no existe o está inactivo.");
+    }
+    if (!team.responsableTelegramId) {
+      throw new Error("El Team no tiene un Team Leader asignado.");
+    }
+    const teamLeader = await obtenerAsesor(team.responsableTelegramId);
+    if (!teamLeader || !teamLeader.activo) {
+      throw new Error("El Team Leader asignado no existe o está inactivo.");
+    }
+    const configTeam = configuracion.comisionesTeamPorCategoria.find(
+      (item) => item.categoriaId === categoria.id,
+    );
+    if (!configTeam) {
+      throw new Error("La categoría no tiene configuración de comisiones Team.");
+    }
+    const comisionTeam = calcularComisionCierreTeam({
+      montoTransaccion: input.montoTransaccion,
+      tipoTransaccion: input.tipoTransaccion,
+      esCaptadorYColocadorMismoAsesor,
+      porcentajeOficinaTeam: configTeam.porcentajeOficina,
+      porcentajeTeamLeader: configTeam.porcentajeTeamLeader,
+    });
+    camposComision = {
+      montoComision: comisionTeam.montoComisionTotal,
+      porcentajeOficinaNacionalAplicado: 0,
+      porcentajeOficinaLocalAplicado: comisionTeam.porcentajeOficinaTeamAplicado,
+      montoPagoOficinaNacional: 0,
+      montoPagoOficinaLocal: comisionTeam.montoPagoOficinaTeam,
+      porcentajeCategoriaAplicado: categoria.porcentajeComision,
+      montoPagoRealAsesor: comisionTeam.montoPagoRealAsesor,
+      tipoCalculoComision: "TEAM",
+      categoriaIdAplicada: categoria.id,
+      categoriaNombreAplicada: categoria.nombre,
+      teamIdAplicado: team.id,
+      teamNombreAplicado: team.nombre,
+      teamLeaderTelegramIdAplicado: teamLeader.telegramId,
+      teamLeaderNombreAplicado: teamLeader.nombre,
+      porcentajeOficinaTeamAplicado: comisionTeam.porcentajeOficinaTeamAplicado,
+      porcentajeTeamLeaderAplicado: comisionTeam.porcentajeTeamLeaderAplicado,
+      montoPagoTeamLeader: comisionTeam.montoPagoTeamLeader,
+    };
+  } else {
+    const comision = calcularComisionCierre({
+      montoTransaccion: input.montoTransaccion,
+      tipoTransaccion: input.tipoTransaccion,
+      esCaptadorYColocadorMismoAsesor,
+      porcentajeOficinaNacional: configuracion.porcentajeOficinaNacional,
+      porcentajeCategoriaAsesor: categoria.porcentajeComision,
+    });
+    camposComision = {
+      montoComision: comision.montoComisionTotal,
+      porcentajeOficinaNacionalAplicado: comision.porcentajeOficinaNacionalAplicado,
+      porcentajeOficinaLocalAplicado: comision.porcentajeOficinaLocalAplicado,
+      montoPagoOficinaNacional: comision.montoPagoOficinaNacional,
+      montoPagoOficinaLocal: comision.montoPagoOficinaLocal,
+      porcentajeCategoriaAplicado: comision.porcentajeCategoriaAplicado,
+      montoPagoRealAsesor: comision.montoPagoRealAsesor,
+      tipoCalculoComision: "INDIVIDUAL",
+      categoriaIdAplicada: categoria.id,
+      categoriaNombreAplicada: categoria.nombre,
+    };
+  }
 
   const ahora = new Date();
   const ahoraISO = ahora.toISOString();
@@ -94,14 +176,7 @@ export async function crearCierre(
   const cierre: Cierre = {
     id: idInterno,
     ...input,
-    montoComision: comision.montoComisionTotal,
-    porcentajeOficinaNacionalAplicado:
-      comision.porcentajeOficinaNacionalAplicado,
-    porcentajeOficinaLocalAplicado: comision.porcentajeOficinaLocalAplicado,
-    montoPagoOficinaNacional: comision.montoPagoOficinaNacional,
-    montoPagoOficinaLocal: comision.montoPagoOficinaLocal,
-    porcentajeCategoriaAplicado: comision.porcentajeCategoriaAplicado,
-    montoPagoRealAsesor: comision.montoPagoRealAsesor,
+    ...camposComision,
     creadoEn: ahoraISO,
     creadoEnBolivia: ahoraBolivia,
     actualizadoEn: ahoraISO,
@@ -121,13 +196,18 @@ export async function obtenerCierre(id: string): Promise<Cierre | null> {
 export async function actualizarEstadoCierre(
   id: string,
   estado: Cierre["estado"],
+  motivoRechazo?: string,
 ): Promise<Cierre> {
   const cierre = await obtenerCierre(id);
   if (!cierre) throw new Error("Cierre no encontrado.");
 
+  validarCambioEstadoCierre(cierre, estado, motivoRechazo);
+
   const actualizado: Cierre = {
     ...cierre,
     estado,
+    motivoRechazo:
+      estado === "RECHAZADO" ? motivoRechazo?.trim() : undefined,
     actualizadoEn: new Date().toISOString(),
   };
   await kv.set(KEYS.cierre(id), actualizado);

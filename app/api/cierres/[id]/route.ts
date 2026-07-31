@@ -3,10 +3,11 @@ import { z } from "zod";
 import { actualizarEstadoCierre } from "@/lib/repositories/cierres";
 import { obtenerSesionActual } from "@/lib/auth";
 import { PERMISOS } from "@/types/domain";
-import { notificarCierreVerificado } from "@/lib/bot/notificaciones";
+import { notificarCierreRechazado, notificarCierreVerificado } from "@/lib/bot/notificaciones";
 
 const esquema = z.object({
   estado: z.enum(["PENDIENTE_REVISION", "VERIFICADO", "RECHAZADO"]),
+  motivoRechazo: z.string().trim().min(3).max(500).optional(),
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -23,10 +24,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   try {
-    const cierre = await actualizarEstadoCierre(params.id, parsed.data.estado);
+    const cierre = await actualizarEstadoCierre(
+      params.id,
+      parsed.data.estado,
+      parsed.data.motivoRechazo,
+    );
 
     if (parsed.data.estado === "VERIFICADO") {
       await notificarCierreVerificado(cierre);
+    } else if (parsed.data.estado === "RECHAZADO") {
+      await notificarCierreRechazado(cierre);
     }
 
     return NextResponse.json({ ok: true, cierre });
