@@ -1,43 +1,51 @@
+import { randomUUID } from "node:crypto";
 import { kv, KEYS } from "@/lib/redis";
-import type { CategoriaAsesor } from "@/types/domain";
+import type {
+  AsesorAutorizado,
+  CategoriaAsesor,
+  ConfiguracionComisiones,
+} from "@/types/domain";
 
-export async function obtenerCategoriaAsesor(id: string): Promise<CategoriaAsesor | null> {
+export async function obtenerCategoriaAsesor(
+  id: string,
+): Promise<CategoriaAsesor | null> {
   return (await kv.get<CategoriaAsesor>(KEYS.categoriaAsesor(id))) ?? null;
 }
 
 export async function listarCategoriasAsesor(): Promise<CategoriaAsesor[]> {
-  const ids = await kv.smembers<string[]>(KEYS.categoriasAsesorIndex);
+  const ids = await kv.smembers(KEYS.categoriasAsesorIndex);
   if (!ids || ids.length === 0) return [];
 
-  const categorias = await Promise.all(ids.map((id) => obtenerCategoriaAsesor(id)));
+  const categorias = await Promise.all(ids.map(obtenerCategoriaAsesor));
   return categorias
-    .filter((categoria): categoria is CategoriaAsesor => categoria !== null)
+    .filter((item): item is CategoriaAsesor => item !== null)
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+}
+
+async function validarNombreUnico(nombre: string, excluirId?: string) {
+  const normalizado = nombre.trim().toLocaleLowerCase("es");
+  const categorias = await listarCategoriasAsesor();
+  const repetida = categorias.some(
+    (categoria) =>
+      categoria.id !== excluirId &&
+      categoria.nombre.trim().toLocaleLowerCase("es") === normalizado,
+  );
+
+  if (repetida) {
+    throw new Error("Ya existe una categoría con ese nombre.");
+  }
 }
 
 export async function crearCategoriaAsesor(params: {
   nombre: string;
   porcentajeComision: number;
 }): Promise<CategoriaAsesor> {
-  const nombreLimpio = params.nombre.trim();
-  if (!nombreLimpio) {
-    throw new Error("El nombre de la categoria es obligatorio.");
-  }
-  if (params.porcentajeComision <= 0 || params.porcentajeComision > 100) {
-    throw new Error("El porcentaje de comision debe estar entre 0.01 y 100.");
-  }
-
-  const existentes = await listarCategoriasAsesor();
-  const duplicada = existentes.find(
-    (categoria) => categoria.nombre.toLowerCase() === nombreLimpio.toLowerCase()
-  );
-  if (duplicada) {
-    throw new Error("Ya existe una categoria con ese nombre.");
-  }
+  const nombre = params.nombre.trim();
+  await validarNombreUnico(nombre);
 
   const categoria: CategoriaAsesor = {
-    id: crypto.randomUUID(),
-    nombre: nombreLimpio,
+    id: randomUUID(),
+    nombre,
     porcentajeComision: params.porcentajeComision,
     activo: true,
     creadoEn: new Date().toISOString(),
@@ -48,14 +56,75 @@ export async function crearCategoriaAsesor(params: {
   return categoria;
 }
 
-export async function cambiarEstadoCategoriaAsesor(
+export async function actualizarCategoriaAsesor(
   id: string,
-  activo: boolean
+  cambios: {
+    nombre?: string;
+    porcentajeComision?: number;
+  },
 ): Promise<CategoriaAsesor> {
   const categoria = await obtenerCategoriaAsesor(id);
-  if (!categoria) throw new Error("Categoria no encontrada.");
+  if (!categoria) throw new Error("Categoría no encontrada.");
 
-  const actualizada: CategoriaAsesor = { ...categoria, activo };
+  const nombre = cambios.nombre?.trim();
+  if (nombre !== undefined) await validarNombreUnico(nombre, id);
+
+  const actualizada: CategoriaAsesor = {
+    ...categoria,
+    ...(nombre !== undefined ? { nombre } : {}),
+    ...(cambios.porcentajeComision !== undefined
+      ? { porcentajeComision: cambios.porcentajeComision }
+      : {}),
+  };
+
   await kv.set(KEYS.categoriaAsesor(id), actualizada);
   return actualizada;
+}
+
+export async function cambiarEstadoCategoriaAsesor(
+  id: string,
+  activo: boolean,
+): Promise<CategoriaAsesor> {
+  const categoria = await obtenerCategoriaAsesor(id);
+  if (!categoria) throw new Error("Categoría no encontrada.");
+
+  const actualizada = { ...categoria, activo };
+  await kv.set(KEYS.categoriaAsesor(id), actualizada);
+  return actualizada;
+}
+
+export async function eliminarCategoriaAsesor(id: string): Promise<void> {
+  const categoria = await obtenerCategoriaAsesor(id);
+  if (!categoria) throw new Error("Categoría no encontrada.");
+
+  const asesorIds = (await kv.smembers(KEYS.asesoresIndex)) ?? [];
+  const asesores = await Promise.all(
+    asesorIds.map((telegramId) =>
+      kv.get<AsesorAutorizado>(KEYS.asesor(telegramId)),
+    ),
+  );
+
+  if (asesores.some((asesor) => asesor?.categoriaId === id)) {
+    throw new Error(
+      "No puedes eliminar la categoría porque tiene asesores asignados. Reasígnalos o desactiva la categoría.",
+    );
+  }
+
+  const configuracion = await kv.get<Partial<ConfiguracionComisiones>>(
+    KEYS.configuracionComisiones,
+  );
+
+  if (configuracion?.comisionesTeamPorCategoria) {
+    await kv.set(KEYS.configuracionComisiones, {
+      ...configuracion,
+      comisionesTeamPorCategoria:
+        configuracion.comisionesTeamPorCategoria.filter(
+          (item) => item.categoriaId !== id,
+        ),
+      actualizadoEn: new Date().toISOString(),
+    });
+  }
+
+  await kv.del(KEYS.categoriaAsesor(id));
+  await kv.srem(KEYS.categoriasAsesorIndex, id);
 }

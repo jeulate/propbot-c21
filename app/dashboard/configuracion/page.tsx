@@ -51,8 +51,8 @@ export default async function ConfiguracionPage() {
         }
       />
       <GestionComisionesTeam
-        porcentajeOficinaTeamInicial={configuracion.porcentajeOficinaTeam}
-        porcentajeTeamLeaderInicial={configuracion.porcentajeTeamLeader}
+        categorias={categorias}
+        configuracionesIniciales={configuracion.comisionesTeamPorCategoria}
       />
       <GestionOficina nombreInicial={configuracion.nombreOficina ?? ""} />
       <GestionAgrupacionesAsesores

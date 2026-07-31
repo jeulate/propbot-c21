@@ -118,12 +118,21 @@ export interface CategoriaAsesor {
   creadoEn: string;
 }
 
+export interface ConfiguracionComisionTeamCategoria {
+  categoriaId: string;
+  porcentajeOficina: number;
+  porcentajeTeamLeader: number;
+}
+
 export interface ConfiguracionComisiones {
   porcentajeOficinaNacional: number;
-  porcentajeOficinaTeam: number;
-  porcentajeTeamLeader: number;
+  comisionesTeamPorCategoria: ConfiguracionComisionTeamCategoria[];
   nombreOficina?: string;
   actualizadoEn: string;
+
+  // Compatibilidad temporal con configuraciones anteriores.
+  porcentajeOficinaTeam?: number;
+  porcentajeTeamLeader?: number;
 }
 
 export interface MetaMensual {
